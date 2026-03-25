@@ -13,19 +13,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
-      - run: npm run fmt:check
+      - run: pnpm -r run fmt:check
 
-      - run: npm run lint
+      - run: pnpm -r run lint
 
-      - run: npm run typecheck
+      - run: pnpm -r run typecheck
 
-      - run: npm run test:run
+      - run: pnpm -r run test:run
 
-      - run: npm run build
+      - run: pnpm -r run build

@@ -2,6 +2,6 @@ pre-commit:
   parallel: false
   commands:
     lint:
-      run: npm run lint:fix
+      run: pnpm -r run lint:fix
     format:
-      run: npm run fmt
+      run: pnpm -r run fmt

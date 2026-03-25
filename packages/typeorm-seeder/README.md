@@ -193,6 +193,38 @@ Circular dependencies between seeders are detected at runtime and throw an error
 
 ---
 
+## Running seed scripts
+
+When running a seed script directly with Node.js, `reflect-metadata` must be the very first import — before any entity is loaded. TypeORM's decorators depend on it being in place when the class is evaluated.
+
+```ts
+import 'reflect-metadata'
+import { seed } from '@joakimbugge/typeorm-seeder'
+import { User } from './entities/User.js'
+
+await seed(User).save({ dataSource })
+```
+
+### TypeScript execution
+
+[tsx](https://github.com/privatenumber/tsx) is a popular choice for running TypeScript directly, but it uses esbuild under the hood which does not support `emitDecoratorMetadata`. This causes TypeORM to fail when inferring column types. Use [ts-node](https://github.com/TypeStrong/ts-node) instead.
+
+**ESM projects** (`"type": "module"` or `"module": "nodenext"` in tsconfig):
+
+```bash
+node --no-warnings --loader ts-node/esm src/seed.ts
+```
+
+`--no-warnings` suppresses two noisy but harmless warnings emitted by ts-node itself: one about `--loader` being experimental (Node.js may eventually replace it with `register()`), and one about ts-node internally using a deprecated `fs.Stats` constructor.
+
+**CommonJS projects:**
+
+```bash
+npx ts-node src/seed.ts
+```
+
+---
+
 ## API reference
 
 ### `@Seed(factory?, options?)`
