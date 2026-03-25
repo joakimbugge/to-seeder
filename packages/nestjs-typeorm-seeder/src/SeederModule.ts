@@ -22,10 +22,7 @@ export class SeederModule {
   static forRoot(options: SeederModuleOptions): DynamicModule {
     return {
       module: SeederModule,
-      providers: [
-        { provide: SEEDER_MODULE_OPTIONS, useValue: options },
-        SeederRunnerService,
-      ],
+      providers: [{ provide: SEEDER_MODULE_OPTIONS, useValue: options }, SeederRunnerService],
     };
   }
 

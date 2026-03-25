@@ -3,7 +3,13 @@ import { describe, it, expect } from 'vitest';
 import { ConsoleLogger, Injectable, Module, type ModuleMetadata } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Column, DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Seed, Seeder, seed, type SeederInterface, type SeedContext } from '@joakimbugge/typeorm-seeder';
+import {
+  Seed,
+  Seeder,
+  seed,
+  type SeederInterface,
+  type SeedContext,
+} from '@joakimbugge/typeorm-seeder';
 import { faker } from '@faker-js/faker';
 import { SeederModule } from '../src/SeederModule.js';
 
@@ -83,9 +89,7 @@ describe('SeederModule', () => {
         imports: [SeederModule.forRoot({ seeders: [UserSeeder] })],
       });
 
-      await expect(moduleRef.init()).rejects.toThrow(
-        'SeederModule could not resolve a DataSource',
-      );
+      await expect(moduleRef.init()).rejects.toThrow('SeederModule could not resolve a DataSource');
     });
   });
 

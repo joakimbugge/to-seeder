@@ -64,7 +64,10 @@ function topoSort(roots: SeederCtor[]): SeederCtor[] {
   }
 }
 
-export async function runSeeders(seeders: SeederCtor[], options: RunSeedersOptions = {}): Promise<void> {
+export async function runSeeders(
+  seeders: SeederCtor[],
+  options: RunSeedersOptions = {},
+): Promise<void> {
   const { logging = true, onBefore, onAfter, onError, ...context } = options;
 
   for (const SeederClass of topoSort(seeders)) {
