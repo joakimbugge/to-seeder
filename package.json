@@ -4,7 +4,11 @@
   "scripts": {
     "dev:watch": "pnpm --parallel -r run dev"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3", "lefthook"]
+  },
   "devDependencies": {
+    "lefthook": "^2.1.4",
     "oxfmt": "^0.42.0",
     "oxlint": "^1.57.0",
     "tsdown": "^0.21.4",
