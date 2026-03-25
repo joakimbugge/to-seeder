@@ -3,7 +3,23 @@ import { getSeederMeta } from './registry.js';
 import type { SeederInterface } from './decorator.js';
 import type { SeedContext } from '../seed/registry.js';
 
-type SeederCtor = new () => SeederInterface;
+export type SeederCtor = new () => SeederInterface;
+
+export interface RunSeedersOptions extends SeedContext {
+  /**
+   * Enable console logging for each seeder. Set to `false` to silence output,
+   * e.g. when using callbacks to handle logging yourself.
+   *
+   * @default true
+   */
+  logging?: boolean;
+  /** Called before each seeder runs, in execution order. */
+  onBefore?: (seeder: SeederCtor) => void | Promise<void>;
+  /** Called after each seeder completes successfully, with the time it took in milliseconds. */
+  onAfter?: (seeder: SeederCtor, durationMs: number) => void | Promise<void>;
+  /** Called when a seeder throws. The error is re-thrown after this callback returns. */
+  onError?: (seeder: SeederCtor, error: unknown) => void | Promise<void>;
+}
 
 function topoSort(roots: SeederCtor[]): SeederCtor[] {
   const graph = new DepGraph<SeederCtor>();
@@ -48,8 +64,37 @@ function topoSort(roots: SeederCtor[]): SeederCtor[] {
   }
 }
 
-export async function runSeeders(seeders: SeederCtor[], context: SeedContext = {}): Promise<void> {
+export async function runSeeders(seeders: SeederCtor[], options: RunSeedersOptions = {}): Promise<void> {
+  const { logging = true, onBefore, onAfter, onError, ...context } = options;
+
   for (const SeederClass of topoSort(seeders)) {
-    await new SeederClass().run(context);
+    if (logging) {
+      console.log(`[${SeederClass.name}] Starting...`);
+    }
+
+    await onBefore?.(SeederClass);
+
+    const start = Date.now();
+
+    try {
+      await new SeederClass().run(context);
+    } catch (err) {
+      const durationMs = Date.now() - start;
+
+      if (logging) {
+        console.error(`[${SeederClass.name}] Failed after ${durationMs}ms`);
+      }
+
+      await onError?.(SeederClass, err);
+      throw err;
+    }
+
+    const durationMs = Date.now() - start;
+
+    if (logging) {
+      console.log(`[${SeederClass.name}] Done in ${durationMs}ms`);
+    }
+
+    await onAfter?.(SeederClass, durationMs);
   }
 }

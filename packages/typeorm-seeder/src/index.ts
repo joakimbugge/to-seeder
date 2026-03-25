@@ -4,6 +4,7 @@ export { createSeed, createManySeed } from './seed/creator.js';
 export { saveSeed, saveManySeed } from './seed/persist.js';
 export { Seeder } from './seeder/decorator.js';
 export { runSeeders } from './seeder/runner.js';
+export type { SeederCtor, RunSeedersOptions } from './seeder/runner.js';
 export type {
   EntityInstance,
   EntityConstructor,
