@@ -27,6 +27,18 @@
   "files": [
     "dist"
   ],
+  "scripts": {
+    "build": "tsdown",
+    "prepublishOnly": "pnpm run build",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "oxlint src tests",
+    "lint:fix": "oxlint --fix src tests",
+    "fmt": "oxfmt src tests",
+    "fmt:check": "oxfmt --check src tests"
+  },
   "keywords": [
     "typeorm",
     "seeder",
@@ -38,6 +50,24 @@
   "license": "MIT",
   "engines": {
     "node": ">=16.13.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": ">=10.0.0",
+    "@nestjs/core": ">=10.0.0",
+    "reflect-metadata": ">=0.1.0",
+    "rxjs": ">=7.0.0",
+    "typeorm": ">=0.3.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.4.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/testing": "^11.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.8.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.0",
+    "typeorm": "1.0.0-beta.1"
   },
   "dependencies": {
     "@joakimbugge/typeorm-seeder": "workspace:*"
