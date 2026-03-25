@@ -1,0 +1,74 @@
+{
+  "name": "typeorm-seeder",
+  "version": "0.1.0",
+  "description": "Decorator-based seeder library for TypeORM",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joakimbugge/to-seeder.git"
+  },
+  "homepage": "https://github.com/joakimbugge/to-seeder#readme",
+  "bugs": "https://github.com/joakimbugge/to-seeder/issues",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "prepublishOnly": "npm run build",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "oxlint src tests",
+    "lint:fix": "oxlint --fix src tests",
+    "fmt": "oxfmt src tests",
+    "fmt:check": "oxfmt --check src tests"
+  },
+  "keywords": [
+    "typeorm",
+    "seeder",
+    "decorator",
+    "database",
+    "seed"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.13.0"
+  },
+  "peerDependencies": {
+    "reflect-metadata": ">=0.1.0",
+    "typeorm": ">=0.3.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.4.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "better-sqlite3": "^12.8.0",
+    "lefthook": "^2.1.4",
+    "oxfmt": "^0.42.0",
+    "oxlint": "^1.57.0",
+    "reflect-metadata": "^0.2.2",
+    "tsdown": "^0.21.4",
+    "tsx": "^4.21.0",
+    "typeorm": "1.0.0-beta.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.1"
+  },
+  "dependencies": {
+    "dependency-graph": "^1.0.0"
+  }
+}
