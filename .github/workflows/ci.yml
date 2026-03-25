@@ -26,6 +26,8 @@ jobs:
 
       - run: pnpm -r run lint
 
+      - run: pnpm --filter @joakimbugge/typeorm-seeder run build
+
       - run: pnpm -r run typecheck
 
       - run: pnpm -r run test:run
