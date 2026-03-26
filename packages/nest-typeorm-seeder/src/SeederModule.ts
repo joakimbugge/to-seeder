@@ -1,13 +1,22 @@
 import { type DynamicModule, Module } from '@nestjs/common';
-import type { SeederInterface } from '@joakimbugge/typeorm-seeder';
+import type { RunSeedersOptions, SeederInterface } from '@joakimbugge/typeorm-seeder';
 import type { DataSource } from 'typeorm';
 import { SeederRunnerService, SEEDER_MODULE_OPTIONS } from './SeederRunnerService.js';
 
 export type SeederCtor = new () => SeederInterface;
 
-export interface SeederModuleOptions {
+export interface SeederModuleOptions extends Pick<
+  RunSeedersOptions,
+  'onBefore' | 'onAfter' | 'onError'
+> {
+  /** Seeder classes to run. Transitive dependencies are resolved automatically. */
   seeders: SeederCtor[];
+  /**
+   * Explicit DataSource. When omitted, the module resolves the DataSource
+   * registered by `TypeOrmModule`.
+   */
   dataSource?: DataSource;
+  /** Passed through to `runSeeders`. Set to `false` to skip relation seeding. */
   relations?: boolean;
   /**
    * When `false`, seeding is skipped entirely. Useful for gating on an env var.

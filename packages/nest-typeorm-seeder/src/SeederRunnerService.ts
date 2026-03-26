@@ -46,19 +46,25 @@ export class SeederRunnerService implements OnApplicationBootstrap {
 
         return shouldSkip;
       },
-      onBefore: (seeder) => this.logger.log(`[${seeder.name}] Starting...`),
+      onBefore: async (seeder) => {
+        this.logger.log(`[${seeder.name}] Starting...`);
+        await this.options.onBefore?.(seeder);
+      },
       onAfter: async (seeder, durationMs) => {
         if (runOnce) {
           await this.recordRun(dataSource, tableName, seeder.name);
         }
 
         this.logger.log(`[${seeder.name}] Done in ${durationMs}ms`);
+        await this.options.onAfter?.(seeder, durationMs);
       },
-      onError: (seeder, error) =>
+      onError: async (seeder, error) => {
         this.logger.error(
           `[${seeder.name}] Failed`,
           error instanceof Error ? error.stack : String(error),
-        ),
+        );
+        await this.options.onError?.(seeder, error);
+      },
     });
   }
 

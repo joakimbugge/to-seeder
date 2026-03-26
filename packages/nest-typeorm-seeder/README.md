@@ -137,6 +137,11 @@ Registers the module with options resolved from the DI container.
 | `enabled` | `boolean?` | `true` | When `false`, seeding is skipped entirely. Useful for gating on an environment variable. |
 | `runOnce` | `boolean?` | `true` | Track executed seeders in the database and skip them on subsequent boots. |
 | `historyTableName` | `string?` | `'seeders'` | Name of the table used to track which seeders have run. |
+| `onBefore` | `(seeder) => void \| Promise<void>` | — | Called before each seeder runs. |
+| `onAfter` | `(seeder, durationMs) => void \| Promise<void>` | — | Called after each seeder completes successfully. |
+| `onError` | `(seeder, error) => void \| Promise<void>` | — | Called when a seeder throws. The error is still re-thrown after this returns. |
+
+These hooks behave identically to the hooks in [`runSeeders`](../typeorm-seeder/README.md#hooks) and are passed through to it directly.
 
 ---
 

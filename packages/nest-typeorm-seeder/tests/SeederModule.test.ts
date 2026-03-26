@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ConsoleLogger, Injectable, Module, type ModuleMetadata } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Column, DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
@@ -164,6 +164,44 @@ describe('SeederModule', () => {
 
       expect(rows.map((r) => r.name)).toContain('UserSeeder');
 
+      await dataSource.destroy();
+    });
+  });
+
+  // onError is not tested here. When a seeder throws after several awaits inside onApplicationBootstrap,
+  // NestJS v11 emits the error as an unhandled rejection on a separate internal Promise in addition to
+  // rejecting the init() promise — making it impossible to suppress in a test without fighting the
+  // framework. onError is covered thoroughly in @joakimbugge/typeorm-seeder's own test suite.
+  describe('hooks', () => {
+    it('calls onBefore before each seeder', async () => {
+      const dataSource = await createDataSource().initialize();
+      const onBefore = vi.fn();
+
+      const moduleRef = await compileModule({
+        imports: [SeederModule.forRoot({ seeders: [UserSeeder], dataSource, onBefore })],
+      });
+
+      await moduleRef.init();
+
+      expect(onBefore).toHaveBeenCalledWith(UserSeeder);
+
+      await moduleRef.close();
+      await dataSource.destroy();
+    });
+
+    it('calls onAfter after each seeder', async () => {
+      const dataSource = await createDataSource().initialize();
+      const onAfter = vi.fn();
+
+      const moduleRef = await compileModule({
+        imports: [SeederModule.forRoot({ seeders: [UserSeeder], dataSource, onAfter })],
+      });
+
+      await moduleRef.init();
+
+      expect(onAfter).toHaveBeenCalledWith(UserSeeder, expect.any(Number));
+
+      await moduleRef.close();
       await dataSource.destroy();
     });
   });
