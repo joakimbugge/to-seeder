@@ -1,10 +1,11 @@
 import 'reflect-metadata';
 import { faker } from '@faker-js/faker';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Column, DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import type { SeedContext } from '../../src';
 import { runSeeders, saveManySeed, Seed, Seeder } from '../../src';
 import { registerSeeder } from '../../src/seeder/registry.js';
+import type { SeederCtor } from '../../src/seeder/runner.js';
 
 // ---------------------------------------------------------------------------
 // Entities
@@ -181,6 +182,237 @@ describe('seeder suites', () => {
       await runSeeders([SharedDep, DependsOnShared], { dataSource });
 
       expect(spy).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('hooks', () => {
+    it('calls onBefore with the seeder constructor before run()', async () => {
+      const events: string[] = [];
+      let receivedCtor: SeederCtor | undefined;
+
+      @Seeder()
+      class HookOrderSeeder {
+        async run(_ctx: SeedContext) {
+          events.push('run');
+        }
+      }
+
+      await runSeeders([HookOrderSeeder], {
+        logging: false,
+        onBefore: (seeder) => {
+          receivedCtor = seeder;
+          events.push('before');
+        },
+      });
+
+      expect(receivedCtor).toBe(HookOrderSeeder);
+      expect(events).toEqual(['before', 'run']);
+    });
+
+    it('calls onAfter with the seeder constructor and a duration after run()', async () => {
+      const events: string[] = [];
+      let receivedCtor: SeederCtor | undefined;
+      let receivedDuration: number | undefined;
+
+      @Seeder()
+      class HookAfterSeeder {
+        async run(_ctx: SeedContext) {
+          events.push('run');
+        }
+      }
+
+      await runSeeders([HookAfterSeeder], {
+        logging: false,
+        onAfter: (seeder, durationMs) => {
+          receivedCtor = seeder;
+          receivedDuration = durationMs;
+          events.push('after');
+        },
+      });
+
+      expect(receivedCtor).toBe(HookAfterSeeder);
+      expect(receivedDuration).toBeGreaterThanOrEqual(0);
+      expect(events).toEqual(['run', 'after']);
+    });
+
+    it('fires onBefore, run, onAfter in order', async () => {
+      const events: string[] = [];
+
+      @Seeder()
+      class FullOrderSeeder {
+        async run(_ctx: SeedContext) {
+          events.push('run');
+        }
+      }
+
+      await runSeeders([FullOrderSeeder], {
+        logging: false,
+        onBefore: () => {
+          events.push('before');
+        },
+        onAfter: () => {
+          events.push('after');
+        },
+      });
+
+      expect(events).toEqual(['before', 'run', 'after']);
+    });
+
+    it('calls onBefore and onAfter once per seeder in execution order', async () => {
+      const beforeOrder: string[] = [];
+      const afterOrder: string[] = [];
+
+      @Seeder()
+      class HookDepA {
+        async run(_ctx: SeedContext) {}
+      }
+
+      @Seeder({ dependencies: [HookDepA] })
+      class HookDepB {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await runSeeders([HookDepB], {
+        logging: false,
+        onBefore: (seeder) => {
+          beforeOrder.push(seeder.name);
+        },
+        onAfter: (seeder) => {
+          afterOrder.push(seeder.name);
+        },
+      });
+
+      expect(beforeOrder).toEqual(['HookDepA', 'HookDepB']);
+      expect(afterOrder).toEqual(['HookDepA', 'HookDepB']);
+    });
+
+    it('calls onError with the seeder constructor and the thrown error', async () => {
+      const boom = new Error('boom');
+      let receivedCtor: SeederCtor | undefined;
+      let receivedError: unknown;
+
+      @Seeder()
+      class FailingSeeder {
+        async run(_ctx: SeedContext) {
+          throw boom;
+        }
+      }
+
+      await expect(
+        runSeeders([FailingSeeder], {
+          logging: false,
+          onError: (seeder, err) => {
+            receivedCtor = seeder;
+            receivedError = err;
+          },
+        }),
+      ).rejects.toThrow('boom');
+
+      expect(receivedCtor).toBe(FailingSeeder);
+      expect(receivedError).toBe(boom);
+    });
+
+    it('does not call onAfter when a seeder throws', async () => {
+      const onAfter = vi.fn();
+
+      @Seeder()
+      class ThrowingSeeder {
+        async run(_ctx: SeedContext) {
+          throw new Error('fail');
+        }
+      }
+
+      await expect(runSeeders([ThrowingSeeder], { logging: false, onAfter })).rejects.toThrow();
+
+      expect(onAfter).not.toHaveBeenCalled();
+    });
+
+    it('re-throws the error after onError completes', async () => {
+      const boom = new Error('original');
+
+      @Seeder()
+      class RethrowSeeder {
+        async run(_ctx: SeedContext) {
+          throw boom;
+        }
+      }
+
+      await expect(
+        runSeeders([RethrowSeeder], {
+          logging: false,
+          onError: () => {},
+        }),
+      ).rejects.toBe(boom);
+    });
+  });
+
+  describe('logging', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('logs a start and done message for each seeder by default', async () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      @Seeder()
+      class LogDefaultSeeder {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await runSeeders([LogDefaultSeeder], {});
+
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('[LogDefaultSeeder]'));
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Starting'));
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('Done'));
+    });
+
+    it('logs a failure message to console.error when a seeder throws', async () => {
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      @Seeder()
+      class LogErrorSeeder {
+        async run(_ctx: SeedContext) {
+          throw new Error('oops');
+        }
+      }
+
+      await expect(runSeeders([LogErrorSeeder], {})).rejects.toThrow();
+
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('[LogErrorSeeder]'));
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Failed'));
+    });
+
+    it('suppresses all console output when logging is false', async () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      @Seeder()
+      class SilentSeeder {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await runSeeders([SilentSeeder], { logging: false });
+
+      expect(logSpy).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it('suppresses the failure message when logging is false', async () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      @Seeder()
+      class SilentErrorSeeder {
+        async run(_ctx: SeedContext) {
+          throw new Error('silent');
+        }
+      }
+
+      await expect(runSeeders([SilentErrorSeeder], { logging: false })).rejects.toThrow();
+
+      expect(logSpy).not.toHaveBeenCalled();
+      expect(errorSpy).not.toHaveBeenCalled();
     });
   });
 
