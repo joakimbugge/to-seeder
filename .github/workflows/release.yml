@@ -46,5 +46,5 @@ jobs:
         run: |
           for path in $(echo '${{ needs.release-please.outputs.paths_released }}' | jq -r '.[]'); do
             pnpm --filter "./$path" run build
-            pnpm publish --filter "./$path" --no-git-checks --access public --provenance
+            cd "$path" && npm publish --access public --provenance && cd -
           done
