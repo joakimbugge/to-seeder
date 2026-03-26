@@ -57,9 +57,6 @@ importers:
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
-      rxjs:
-        specifier: ^7.8.0
-        version: 7.8.2
       typeorm:
         specifier: 1.0.0-beta.1
         version: 1.0.0-beta.1(better-sqlite3@12.8.0)
