@@ -6,6 +6,19 @@ Coded by AI. Reviewed by humans.
 
 ---
 
+- [Installation](#installation)
+- [Decorating entities](#decorating-entities)
+- [Seeding entities](#seeding-entities)
+- [Seeder suites](#seeder-suites)
+- [Seeding without `@Seed()`](#seeding-without-seed)
+- [Logging](#logging)
+- [Hooks](#hooks)
+- [Skipping seeders](#skipping-seeders)
+- [Running seed scripts](#running-seed-scripts)
+- [API reference](#api-reference)
+
+---
+
 ## Installation
 
 ```bash
@@ -192,6 +205,26 @@ await runSeeders([PostSeeder], { dataSource })
 `runSeeders` accepts the root seeders you want to execute. It collects all transitive dependencies, topologically sorts them, and runs each once in the correct order. Passing the same seeder as both a root and a dependency of another root is safe — it will only run once.
 
 Circular dependencies between seeders are detected at runtime and throw an error naming the seeders involved.
+
+---
+
+## Seeding without `@Seed()`
+
+`@Seed()` is a convenience — it is not required. If you want to seed with explicit, fixed values rather than generated ones, use TypeORM's `Repository` or `EntityManager` directly inside `run()`. Both are available through the `dataSource` from `SeedContext`:
+
+```ts
+@Seeder()
+class UserSeeder implements SeederInterface {
+  async run({ dataSource }: SeedContext): Promise<void> {
+    await dataSource!.getRepository(User).save([
+      { name: 'Alice', role: 'admin' },
+      { name: 'Bob', role: 'user' },
+    ])
+  }
+}
+```
+
+You can mix both approaches freely — use `@Seed()` for entities where generated data is fine, and explicit values where the content matters.
 
 ---
 

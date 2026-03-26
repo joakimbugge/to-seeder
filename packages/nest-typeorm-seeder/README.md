@@ -9,6 +9,13 @@ Coded by AI. Reviewed by humans.
 
 ---
 
+- [Installation](#installation)
+- [Basic usage](#basic-usage)
+- [Running once](#running-once)
+- [API reference](#api-reference)
+
+---
+
 ## Installation
 
 ```bash
