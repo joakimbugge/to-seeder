@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.6.0...typeorm-seeder-v0.6.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* **packages/typeorm-seeder:** allow SeedFactory in values properties ([e6232b3](https://github.com/joakimbugge/to-seeder/commit/e6232b372881e6dae706dff0189e78116dbc244d))
+
 ## [0.6.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.5.0...typeorm-seeder-v0.6.0) (2026-03-27)
 
 

@@ -1,4 +1,4 @@
 {
-  "packages/typeorm-seeder": "0.6.0",
+  "packages/typeorm-seeder": "0.6.1",
   "packages/nest-typeorm-seeder": "0.4.1"
 }
