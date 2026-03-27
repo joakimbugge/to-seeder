@@ -29,8 +29,23 @@ export interface SeedContext {
   relations?: boolean;
 }
 
-/** Factory callback passed to @Seed. Receives the seeder context, which may include a DataSource. */
-export type SeedFactory<T = unknown> = (context: SeedContext) => T | Promise<T>;
+/**
+ * Factory callback passed to `@Seed`. Receives the seed context and the partially built entity.
+ *
+ * Properties are seeded sequentially in declaration order, so any property declared above the
+ * current one is already set on `self` and can be read to derive the current value:
+ *
+ * @example
+ * @Seed(() => faker.date.past())
+ * beginDate!: Date
+ *
+ * @Seed((_, self) => faker.date.future({ refDate: (self as MyEntity).beginDate }))
+ * endDate!: Date
+ */
+export type SeedFactory<T = unknown> = (
+  context: SeedContext,
+  self: EntityInstance,
+) => T | Promise<T>;
 
 /** Options for the `@Seed` decorator. */
 export interface SeedOptions {

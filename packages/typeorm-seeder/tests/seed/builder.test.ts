@@ -122,6 +122,24 @@ describe('seed() builder', () => {
     });
   });
 
+  describe('self — partial entity in factory', () => {
+    it('receives the partially-built entity so later properties can depend on earlier ones', async () => {
+      class Event {
+        @Seed(() => faker.date.past())
+        @Column({ type: 'text' })
+        beginDate!: Date;
+
+        @Seed((_, self) => faker.date.future({ refDate: (self as Event).beginDate }))
+        @Column({ type: 'text' })
+        endDate!: Date;
+      }
+
+      const event = await seed(Event).create({ relations: false });
+
+      expect(event.endDate > event.beginDate).toBe(true);
+    });
+  });
+
   describe('array form', () => {
     it('create() returns a tuple of instances', async () => {
       const [director, studio] = await seed([Director, Studio]).create();

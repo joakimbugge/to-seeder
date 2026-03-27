@@ -70,7 +70,7 @@ async function createOneSeed<T extends EntityInstance>(
       continue;
     }
 
-    record[propertyKey] = await factory(context);
+    record[propertyKey] = await factory(context, instance);
     seededProperties.add(propertyKey);
   }
 
