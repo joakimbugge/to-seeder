@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.4.0...nest-typeorm-seeder-v0.4.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* **packages/nest-typeorm-seeder:** add more comments ([4d06dea](https://github.com/joakimbugge/to-seeder/commit/4d06dea9ddd5b1d0ffa2ffe84b51e31cf86aeae3))
+
 ## [0.4.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.3.0...nest-typeorm-seeder-v0.4.0) (2026-03-27)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.4.0...typeorm-seeder-v0.4.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* **packages/typeorm-seeder:** add more comments ([d806424](https://github.com/joakimbugge/to-seeder/commit/d806424944837444cf38260dd3f76a7db3d96dc6))
+
 ## [0.4.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.3.0...typeorm-seeder-v0.4.0) (2026-03-26)
 
 
