@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.2.0...nest-typeorm-seeder-v0.3.0) (2026-03-27)
+
+
+### Features
+
+* **packages/nest-typeorm-seeder:** add run() for simplicity ([7876613](https://github.com/joakimbugge/to-seeder/commit/78766131aaf62001c2dd470816e4a716c90fb530))
+* **packages/nest-typeorm-seeder:** expose typeorm-seeder hooks ([497b28a](https://github.com/joakimbugge/to-seeder/commit/497b28af1484f018801da47d1c109c2f555404e2))
+
 ## [0.2.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.1.0...nest-typeorm-seeder-v0.2.0) (2026-03-26)
 
 
