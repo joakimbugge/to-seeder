@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.4.1...typeorm-seeder-v0.5.0) (2026-03-27)
+
+
+### Features
+
+* **packages/typeorm-seeder:** provide partial instance in @Seed ([9356d83](https://github.com/joakimbugge/to-seeder/commit/9356d8369bef1736b60852ac2055c267a86bd6c9))
+
+
+### Bug Fixes
+
+* **packages/typeorm-seeder:** add missing argument in decorator test ([2de864e](https://github.com/joakimbugge/to-seeder/commit/2de864eeceda6f86e9aae0bf8480668f5b1b7360))
+
 ## [0.4.1](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.4.0...typeorm-seeder-v0.4.1) (2026-03-27)
 
 
