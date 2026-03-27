@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.5.0...typeorm-seeder-v0.6.0) (2026-03-27)
+
+
+### Features
+
+* **packages/typeorm-seeder:** add values option ([daaa351](https://github.com/joakimbugge/to-seeder/commit/daaa351779ad814d7b1bcb3dfc724c4b79509364))
+* **packages/typeorm-seeder:** consistent types naming ([2f93900](https://github.com/joakimbugge/to-seeder/commit/2f9390005ee2353e09c5ce1afb252fb0668f736d))
+* **packages/typeorm-seeder:** simplify creator and persist methods naming ([7c50f6f](https://github.com/joakimbugge/to-seeder/commit/7c50f6fb93f1d31984106f2d0ae60b38ca901455))
+
+
+### Bug Fixes
+
+* **packages/typeorm-seeder:** add generic type to self argument ([c821126](https://github.com/joakimbugge/to-seeder/commit/c821126f69556d1f0772091fd57e3a6e189c92d7))
+
 ## [0.5.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.4.1...typeorm-seeder-v0.5.0) (2026-03-27)
 
 
