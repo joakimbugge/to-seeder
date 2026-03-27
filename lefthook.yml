@@ -3,5 +3,7 @@ pre-commit:
   commands:
     lint:
       run: pnpm -r run lint:fix
+      stage_fixed: true
     format:
       run: pnpm -r run fmt
+      stage_fixed: true
