@@ -1,6 +1,6 @@
 # @joakimbugge/nest-typeorm-seeder
 
-NestJS module for [@joakimbugge/typeorm-seeder](../typeorm-seeder). Runs your `@Seeder` classes automatically on application bootstrap — once per seeder by default, tracked in a database table so watch-mode restarts do not re-seed.
+NestJS module for [@joakimbugge/typeorm-seeder](../typeorm-seeder). Runs your `@Seeder` classes automatically on application bootstrap — once per seeder by default, tracked in a database table so watch-mode restarts do not re-seed. For simple cases, a `run` callback lets you seed without any class boilerplate.
 
 > [!TIP]
 > This package handles the NestJS integration. The seeding itself — `@Seed()`, `@Seeder`, `seed()`, entity factories — is all defined in [@joakimbugge/typeorm-seeder](../typeorm-seeder/README.md). Familiarity with that package will make this one much easier to use.
@@ -12,6 +12,7 @@ Coded by AI. Reviewed by humans.
 - [Installation](#installation)
 - [Basic usage](#basic-usage)
 - [Running once](#running-once)
+- [Seed scripts](#seed-scripts)
 - [API reference](#api-reference)
 
 ---
@@ -130,6 +131,41 @@ DELETE FROM "seeders";
 
 ---
 
+## Seed scripts
+
+For simple cases where named, tracked seeders are more structure than you need, provide a `run` callback instead. It receives the resolved `DataSource` and executes on every boot — no run-once tracking applies:
+
+```ts
+SeederModule.forRoot({
+  async run({ dataSource }) {
+    await seed(User).saveMany(10, { dataSource })
+  },
+})
+```
+
+`run` is the escape hatch for seeding that should always happen. If you need run-once semantics, the named `@Seeder` pattern is the right tool.
+
+> [!NOTE]
+> Because `run` always executes, `runOnce` is not accepted when `seeders` is omitted — TypeScript will reject it at compile time.
+
+### Using both together
+
+`seeders` and `run` can coexist. Seeders run first (sorted, tracked per their `runOnce` setting), then `run` is called. This means the callback can safely assume seeder data is already in place:
+
+```ts
+SeederModule.forRoot({
+  seeders: [UserSeeder],
+  async run({ dataSource }) {
+    // UserSeeder has already run
+    await seed(AdminUser).save({ dataSource })
+  },
+})
+```
+
+`runOnce` applies only to `seeders` — `run` always executes regardless.
+
+---
+
 ## API reference
 
 ### `SeederModule.forRoot(options)`
@@ -152,19 +188,35 @@ Registers the module with options resolved from the DI container.
 
 ### `SeederModuleOptions`
 
+`SeederModuleOptions` is a discriminated union with two shapes depending on which properties are provided.
+
+**Shared properties** (available in both shapes)
+
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `seeders` | `SeederCtor[]` | — | Seeder classes to run. Transitive dependencies are resolved automatically. |
 | `dataSource` | `DataSource?` | — | Explicit DataSource. When omitted, the module resolves the DataSource registered by `TypeOrmModule`. |
 | `relations` | `boolean?` | `true` | Passed through to `runSeeders`. Set to `false` to skip relation seeding. |
 | `enabled` | `boolean?` | `true` | When `false`, seeding is skipped entirely. Useful for gating on an environment variable. |
-| `runOnce` | `boolean?` | `true` | Track executed seeders in the database and skip them on subsequent boots. |
-| `historyTableName` | `string?` | `'seeders'` | Name of the table used to track which seeders have run. |
 | `onBefore` | `(seeder) => void \| Promise<void>` | — | Called before each seeder runs. |
 | `onAfter` | `(seeder, durationMs) => void \| Promise<void>` | — | Called after each seeder completes successfully. |
 | `onError` | `(seeder, error) => void \| Promise<void>` | — | Called when a seeder throws. The error is still re-thrown after this returns. |
 
-These hooks behave identically to the hooks in [`runSeeders`](../typeorm-seeder/README.md#hooks) and are passed through to it directly.
+The hooks behave identically to the hooks in [`runSeeders`](../typeorm-seeder/README.md#hooks) and are passed through to it directly.
+
+**With `seeders`** — `run` is optional; `runOnce` and `historyTableName` apply
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `seeders` | `SeederCtor[]` | — | Seeder classes to run. Transitive dependencies are resolved automatically. |
+| `run` | `RunCallback?` | — | Inline callback executed after all seeders. Always runs — `runOnce` does not apply to it. |
+| `runOnce` | `boolean?` | `true` | Track executed seeders in the database and skip them on subsequent boots. |
+| `historyTableName` | `string?` | `'seeders'` | Name of the table used to track which seeders have run. |
+
+**With `run` only** — no `seeders`, no `runOnce`
+
+| Property | Type | Description |
+|---|---|---|
+| `run` | `RunCallback` | Inline callback executed on every boot. No run-once tracking is applied. |
 
 ---
 

@@ -23,49 +23,56 @@ export class SeederRunnerService implements OnApplicationBootstrap {
     }
 
     const dataSource = await this.resolveDataSource();
-    const runOnce = this.options.runOnce ?? true;
-    const tableName = this.options.historyTableName ?? DEFAULT_HISTORY_TABLE;
 
-    let executedSeeders = new Set<string>();
+    if (this.options.seeders) {
+      const runOnce = this.options.runOnce ?? true;
+      const tableName = this.options.historyTableName ?? DEFAULT_HISTORY_TABLE;
 
-    if (runOnce) {
-      await this.ensureHistoryTable(dataSource, tableName);
-      executedSeeders = await this.getExecutedSeeders(dataSource, tableName);
+      let executedSeeders = new Set<string>();
+
+      if (runOnce) {
+        await this.ensureHistoryTable(dataSource, tableName);
+        executedSeeders = await this.getExecutedSeeders(dataSource, tableName);
+      }
+
+      await runSeeders(this.options.seeders, {
+        dataSource,
+        relations: this.options.relations,
+        logging: false,
+        skip: (seeder) => {
+          const shouldSkip = executedSeeders.has(seeder.name);
+
+          if (shouldSkip) {
+            this.logger.log(`[${seeder.name}] Skipping (already run)`);
+          }
+
+          return shouldSkip;
+        },
+        onBefore: async (seeder) => {
+          this.logger.log(`[${seeder.name}] Starting...`);
+          await this.options.onBefore?.(seeder);
+        },
+        onAfter: async (seeder, durationMs) => {
+          if (runOnce) {
+            await this.recordRun(dataSource, tableName, seeder.name);
+          }
+
+          this.logger.log(`[${seeder.name}] Done in ${durationMs}ms`);
+          await this.options.onAfter?.(seeder, durationMs);
+        },
+        onError: async (seeder, error) => {
+          this.logger.error(
+            `[${seeder.name}] Failed`,
+            error instanceof Error ? error.stack : String(error),
+          );
+          await this.options.onError?.(seeder, error);
+        },
+      });
     }
 
-    await runSeeders(this.options.seeders, {
-      dataSource,
-      relations: this.options.relations,
-      logging: false,
-      skip: (seeder) => {
-        const shouldSkip = executedSeeders.has(seeder.name);
-
-        if (shouldSkip) {
-          this.logger.log(`[${seeder.name}] Skipping (already run)`);
-        }
-
-        return shouldSkip;
-      },
-      onBefore: async (seeder) => {
-        this.logger.log(`[${seeder.name}] Starting...`);
-        await this.options.onBefore?.(seeder);
-      },
-      onAfter: async (seeder, durationMs) => {
-        if (runOnce) {
-          await this.recordRun(dataSource, tableName, seeder.name);
-        }
-
-        this.logger.log(`[${seeder.name}] Done in ${durationMs}ms`);
-        await this.options.onAfter?.(seeder, durationMs);
-      },
-      onError: async (seeder, error) => {
-        this.logger.error(
-          `[${seeder.name}] Failed`,
-          error instanceof Error ? error.stack : String(error),
-        );
-        await this.options.onError?.(seeder, error);
-      },
-    });
+    if (this.options.run) {
+      await this.options.run({ dataSource });
+    }
   }
 
   private async ensureHistoryTable(dataSource: DataSource, tableName: string): Promise<void> {

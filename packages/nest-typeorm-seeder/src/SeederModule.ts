@@ -5,12 +5,12 @@ import { SeederRunnerService, SEEDER_MODULE_OPTIONS } from './SeederRunnerServic
 
 export type SeederCtor = new () => SeederInterface;
 
-export interface SeederModuleOptions extends Pick<
+export type RunCallback = (ctx: { dataSource: DataSource }) => void | Promise<void>;
+
+interface SeederModuleBaseOptions extends Pick<
   RunSeedersOptions,
   'onBefore' | 'onAfter' | 'onError'
 > {
-  /** Seeder classes to run. Transitive dependencies are resolved automatically. */
-  seeders: SeederCtor[];
   /**
    * Explicit DataSource. When omitted, the module resolves the DataSource
    * registered by `TypeOrmModule`.
@@ -24,6 +24,16 @@ export interface SeederModuleOptions extends Pick<
    * @default true
    */
   enabled?: boolean;
+}
+
+interface SeederModuleSeedersOptions extends SeederModuleBaseOptions {
+  /** Seeder classes to run. Transitive dependencies are resolved automatically. */
+  seeders: SeederCtor[];
+  /**
+   * Inline callback executed after all seeders have run. Always executes on
+   * every boot — `runOnce` does not apply to it.
+   */
+  run?: RunCallback;
   /**
    * Track executed seeders in a database table and skip them on subsequent boots.
    * Set to `false` to always run every seeder regardless.
@@ -41,6 +51,18 @@ export interface SeederModuleOptions extends Pick<
    */
   historyTableName?: string;
 }
+
+interface SeederModuleRunOptions extends SeederModuleBaseOptions {
+  seeders?: never;
+  /**
+   * Inline callback executed on every boot. runOnce is false.
+   */
+  run: RunCallback;
+  runOnce?: false;
+  historyTableName?: never;
+}
+
+export type SeederModuleOptions = SeederModuleSeedersOptions | SeederModuleRunOptions;
 
 export interface SeederModuleAsyncOptions {
   imports?: any[];

@@ -1,17 +1,17 @@
 import 'reflect-metadata';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { ConsoleLogger, Injectable, Module, type ModuleMetadata } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { Column, DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import {
   Seed,
-  Seeder,
   seed,
-  type SeederInterface,
   type SeedContext,
+  Seeder,
+  type SeederInterface,
 } from '@joakimbugge/typeorm-seeder';
 import { faker } from '@faker-js/faker';
-import { SeederModule } from '../src/SeederModule.js';
+import { SeederModule } from '../src';
 
 @Entity()
 class User {
@@ -200,6 +200,75 @@ describe('SeederModule', () => {
       await moduleRef.init();
 
       expect(onAfter).toHaveBeenCalledWith(UserSeeder, expect.any(Number));
+
+      await moduleRef.close();
+      await dataSource.destroy();
+    });
+  });
+
+  describe('run', () => {
+    it('executes the callback with the dataSource', async () => {
+      const dataSource = await createDataSource().initialize();
+      const run = vi.fn();
+
+      const moduleRef = await compileModule({
+        imports: [SeederModule.forRoot({ run, dataSource })],
+      });
+
+      await moduleRef.init();
+
+      expect(run).toHaveBeenCalledWith({ dataSource });
+
+      await moduleRef.close();
+      await dataSource.destroy();
+    });
+
+    it('always executes on every boot', async () => {
+      const dataSource = await createDataSource().initialize();
+      const run = vi.fn();
+
+      async function bootstrap(): Promise<void> {
+        const moduleRef = await compileModule({
+          imports: [SeederModule.forRoot({ run, dataSource })],
+        });
+        await moduleRef.init();
+        await moduleRef.close();
+      }
+
+      await bootstrap();
+      await bootstrap();
+
+      expect(run).toHaveBeenCalledTimes(2);
+
+      await dataSource.destroy();
+    });
+
+    it('executes after seeders when both are provided', async () => {
+      const dataSource = await createDataSource().initialize();
+      const order: string[] = [];
+
+      @Seeder()
+      class OrderSeeder implements SeederInterface {
+        async run(): Promise<void> {
+          order.push('seeder');
+        }
+      }
+
+      const moduleRef = await compileModule({
+        imports: [
+          SeederModule.forRoot({
+            seeders: [OrderSeeder],
+            run: async () => {
+              order.push('run');
+            },
+            dataSource,
+          }),
+        ],
+      });
+
+      await moduleRef.init();
+
+      expect(order).toEqual(['seeder', 'run']);
 
       await moduleRef.close();
       await dataSource.destroy();
