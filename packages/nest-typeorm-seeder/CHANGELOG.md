@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.3.0...nest-typeorm-seeder-v0.4.0) (2026-03-27)
+
+
+### Features
+
+* **packages/nest-typeorm-seeder:** add forFeature() ([e6c1422](https://github.com/joakimbugge/to-seeder/commit/e6c1422c5857a7e556626c8af05e9277f8a8ae52))
+
 ## [0.3.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.2.0...nest-typeorm-seeder-v0.3.0) (2026-03-27)
 
 
