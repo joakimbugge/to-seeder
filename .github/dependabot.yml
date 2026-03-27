@@ -1,0 +1,22 @@
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /packages/typeorm-seeder
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /packages/nest-typeorm-seeder
+    schedule:
+      interval: weekly
