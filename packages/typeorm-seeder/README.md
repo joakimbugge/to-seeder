@@ -257,14 +257,14 @@ import type { SeederInterface, SeedContext } from '@joakimbugge/typeorm-seeder'
 @Seeder()
 class UserSeeder implements SeederInterface {
   async run(ctx: SeedContext) {
-    await seed(User).saveMany(10, { ...ctx, dataSource: ctx.dataSource! })
+    await seed(User).saveMany(10, ctx)
   }
 }
 
 @Seeder({ dependencies: [UserSeeder] })
 class PostSeeder implements SeederInterface {
   async run(ctx: SeedContext) {
-    await seed(Post).saveMany(50, { ...ctx, dataSource: ctx.dataSource! })
+    await seed(Post).saveMany(50, ctx)
   }
 }
 
@@ -276,6 +276,9 @@ await runSeeders([PostSeeder], { dataSource })
 `runSeeders` accepts the root seeders you want to execute. It collects all transitive dependencies, topologically sorts them, and runs each once in the correct order. Passing the same seeder as both a root and a dependency of another root is safe — it will only run once.
 
 Circular dependencies between seeders are detected at runtime and throw an error naming the seeders involved.
+
+> [!TIP]
+> Using NestJS? [@joakimbugge/nest-typeorm-seeder](https://github.com/joakimbugge/to-seeder/tree/main/packages/nest-typeorm-seeder) wraps `runSeeders` in a `SeederModule` that runs your seeders automatically on application bootstrap — no seed script needed. It also tracks which seeders have already run so watch-mode restarts don't re-seed.
 
 ---
 
