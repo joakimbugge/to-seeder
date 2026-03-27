@@ -57,8 +57,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
       typeorm:
-        specifier: 1.0.0-beta.1
-        version: 1.0.0-beta.1(better-sqlite3@12.8.0)
+        specifier: 1.0.0-nightly.20260327
+        version: 1.0.0-nightly.20260327(better-sqlite3@12.8.0)
 
   packages/typeorm-seeder:
     dependencies:
@@ -79,8 +79,8 @@ importers:
         specifier: ^0.2.2
         version: 0.2.2
       typeorm:
-        specifier: 1.0.0-beta.1
-        version: 1.0.0-beta.1(better-sqlite3@12.8.0)
+        specifier: 1.0.0-nightly.20260327
+        version: 1.0.0-nightly.20260327(better-sqlite3@12.8.0)
 
 packages:
 
@@ -1446,8 +1446,8 @@ packages:
   tunnel-agent@0.6.0:
     resolution: {integrity: sha512-McnNiV1l8RYeY8tBgEpuodCC1mLUdbSN+CYBL7kJsJNInOP8UjDDEwdk6Mw60vdLLrr5NHKZhMAOSrR2NZuQ+w==}
 
-  typeorm@1.0.0-beta.1:
-    resolution: {integrity: sha512-urUDPBiu+RE3e4+PtamWMaTmXp/O+0PkTTMSf7cAcAkVDp2JrAHd20llywwr8+wRGyifWvXEEcqhvw5sgxqzdw==}
+  typeorm@1.0.0-nightly.20260327:
+    resolution: {integrity: sha512-KL6PsoEzQoEveQYJyJHMALCcdyh5WtY8q/WstLf5iEdTnM5r6PmhSRF01yf6OFb/vK/tYkf3gJ3Diu1Ob33E8Q==}
     engines: {node: ^20.19.0 || ^22.12.0 || >=24.11.0}
     hasBin: true
     peerDependencies:
@@ -2680,7 +2680,7 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  typeorm@1.0.0-beta.1(better-sqlite3@12.8.0):
+  typeorm@1.0.0-nightly.20260327(better-sqlite3@12.8.0):
     dependencies:
       '@sqltools/formatter': 1.2.5
       ansis: 4.2.0
