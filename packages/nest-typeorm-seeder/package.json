@@ -60,13 +60,8 @@
   },
   "devDependencies": {
     "@joakimbugge/typeorm-seeder": "workspace:^",
-    "@faker-js/faker": "^10.4.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
-    "@nestjs/testing": "^11.0.0",
-    "@types/better-sqlite3": "^7.6.13",
-    "better-sqlite3": "^12.8.0",
-    "reflect-metadata": "^0.2.2",
-    "typeorm": "1.0.0-nightly.20260327"
+    "@nestjs/testing": "^11.0.0"
   }
 }
