@@ -34,6 +34,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:cov": "vitest run --coverage",
     "lint": "oxlint src tests",
     "lint:fix": "oxlint --fix src tests",
     "fmt": "oxfmt src tests",
