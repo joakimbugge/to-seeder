@@ -14,9 +14,16 @@ Coded by AI. Reviewed by humans.
 
 - [Installation](#installation)
 - [Basic usage](#basic-usage)
+  - [Providing a DataSource explicitly](#providing-a-datasource-explicitly)
+  - [Async configuration](#async-configuration)
 - [Feature modules](#feature-modules)
+  - [Cross-module dependencies](#cross-module-dependencies)
 - [Running once](#running-once)
+  - [In combination with `dropSchema`](#in-combination-with-dropschema)
+  - [Evolving seed data](#evolving-seed-data)
+  - [Re-seeding](#re-seeding)
 - [Seed scripts](#seed-scripts)
+  - [Using both together](#using-both-together)
 - [API reference](#api-reference)
 
 ---
