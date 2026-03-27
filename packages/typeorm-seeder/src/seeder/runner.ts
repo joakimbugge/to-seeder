@@ -3,8 +3,10 @@ import { getSeederMeta } from './registry.js';
 import type { SeederInterface } from './decorator.js';
 import type { SeedContext } from '../seed/registry.js';
 
+/** Constructor type for a class decorated with `@Seeder`. */
 export type SeederCtor = new () => SeederInterface;
 
+/** Options for {@link runSeeders}. Extends {@link SeedContext} with lifecycle hooks and logging control. */
 export interface RunSeedersOptions extends SeedContext {
   /**
    * Enable console logging for each seeder. Set to `false` to silence output,
@@ -23,6 +25,12 @@ export interface RunSeedersOptions extends SeedContext {
   skip?: (seeder: SeederCtor) => boolean | Promise<boolean>;
 }
 
+/**
+ * Topologically sorts the given seeders and all their transitive dependencies.
+ * BFS walks from the roots to collect all nodes, then dependency edges are wired and
+ * the graph is sorted so that every dependency precedes the seeders that depend on it.
+ * Throws a descriptive error if a circular dependency is detected.
+ */
 function topoSort(roots: SeederCtor[]): SeederCtor[] {
   const graph = new DepGraph<SeederCtor>();
   const byName = new Map<string, SeederCtor>();
@@ -66,6 +74,24 @@ function topoSort(roots: SeederCtor[]): SeederCtor[] {
   }
 }
 
+/**
+ * Runs the given seeders (and all their transitive dependencies) in dependency order.
+ *
+ * Each seeder is instantiated, its `run` method is called with the context derived
+ * from `options`, and lifecycle hooks (`onBefore`, `onAfter`, `onError`) are called
+ * around it. Errors are re-thrown after `onError` returns.
+ *
+ * @example
+ * await runSeeders([PostSeeder], { dataSource })
+ *
+ * @example
+ * // With lifecycle hooks and no console output
+ * await runSeeders([PostSeeder], {
+ *   dataSource,
+ *   logging: false,
+ *   onAfter: (seeder, ms) => console.log(`${seeder.name} done in ${ms}ms`),
+ * })
+ */
 export async function runSeeders(
   seeders: SeederCtor[],
   options: RunSeedersOptions = {},

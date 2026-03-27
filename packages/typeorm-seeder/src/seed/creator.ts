@@ -8,6 +8,7 @@ import type {
   SeedContext,
 } from './registry.js';
 
+/** Options for {@link createManySeed}. Extends {@link SeedContext} with a required instance count. */
 export interface CreateManySeedOptions extends SeedContext {
   count: number;
 }
@@ -17,16 +18,19 @@ interface InternalContext extends SeedContext {
   _ancestors: Set<Function>;
 }
 
+/** Extracts the ancestor set from an internal context, returning an empty set for external callers. */
 function getAncestors(context: SeedContext): Set<Function> {
   return (context as InternalContext)._ancestors ?? new Set();
 }
 
+/** Returns a new context with `cls` added to the ancestor set, used to detect circular relation chains. */
 function withAncestor(context: SeedContext, cls: Function): InternalContext {
   const ancestors = getAncestors(context);
 
   return { ...context, _ancestors: new Set([...ancestors, cls]) };
 }
 
+/** Walks the prototype chain and returns all classes from `target` up to (but not including) `Function.prototype`. */
 function getClassHierarchy(target: Function): Function[] {
   const hierarchy: Function[] = [];
   let current: Function = target;
@@ -39,6 +43,15 @@ function getClassHierarchy(target: Function): Function[] {
   return hierarchy;
 }
 
+/**
+ * Creates one fully populated instance of `EntityClass` in memory.
+ *
+ * Runs in three steps:
+ * 1. Factory-decorated properties (`@Seed(factory)`) — run first, in declaration order.
+ * 2. Embedded types (`@Embedded`) — auto-seeded if the embedded class has any `@Seed` entries.
+ * 3. Bare relation decorators (`@Seed()` without a factory) — skipped when `relations` is `false`,
+ *    and also skipped for any related class already present in the ancestor chain (circular guard).
+ */
 async function createOneSeed<T extends EntityInstance>(
   EntityClass: EntityConstructor<T>,
   context: SeedContext,
@@ -119,6 +132,13 @@ async function createOneSeed<T extends EntityInstance>(
   return instance;
 }
 
+/**
+ * Creates one entity instance in memory without persisting it.
+ *
+ * When passed an array of classes, relation seeding is disabled by default
+ * (pass `relations: true` in the context to override). Returns a tuple of
+ * instances in the same order as the input array.
+ */
 export async function createSeed<T extends EntityInstance>(
   EntityClass: EntityConstructor<T>,
   context?: SeedContext,
@@ -147,6 +167,13 @@ export async function createSeed<T extends EntityInstance>(
   return entity!;
 }
 
+/**
+ * Creates multiple entity instances in memory without persisting them.
+ *
+ * When passed an array of classes, returns a tuple of arrays — one per class — each
+ * containing `count` instances. Relation seeding is disabled by default for the
+ * array variant; pass `relations: true` in the options to override.
+ */
 export async function createManySeed<T extends EntityInstance>(
   EntityClass: EntityConstructor<T>,
   options: CreateManySeedOptions,

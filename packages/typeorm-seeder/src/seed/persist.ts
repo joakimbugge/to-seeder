@@ -9,10 +9,12 @@ import type {
   SeedContext,
 } from './registry.js';
 
+/** Options for {@link saveSeed}. Extends {@link SeedContext} with a required DataSource. */
 export interface SaveSeedOptions extends SeedContext {
   dataSource: DataSource;
 }
 
+/** Options for {@link saveManySeed}. Extends {@link SaveSeedOptions} with a required instance count. */
 export interface SaveManySeedOptions extends SaveSeedOptions {
   count: number;
 }
@@ -28,6 +30,11 @@ interface CascadeState {
   original: boolean;
 }
 
+/**
+ * Walks an entity object graph and collects every unique entity class encountered.
+ * Used to discover all entity classes that need cascade-insert temporarily enabled
+ * before saving so that the full in-memory graph is persisted in one shot.
+ */
 function collectEntityClasses(entity: EntityInstance, visited = new Set<Function>()): Function[] {
   const EntityClass = entity.constructor as Function;
 
@@ -54,6 +61,16 @@ function collectEntityClasses(entity: EntityInstance, visited = new Set<Function
   return classes;
 }
 
+/**
+ * Temporarily enables `isCascadeInsert` on every TypeORM relation for the given class.
+ * Returns the previous flag values so they can be restored after saving.
+ *
+ * This is necessary because the seeder builds the full object graph in memory before
+ * calling `save()`. Without cascade inserts, TypeORM would only persist the root entity
+ * and ignore any nested relations that weren't already configured with `cascade: true`.
+ *
+ * Classes not registered as TypeORM entities (e.g. embedded value objects) are silently skipped.
+ */
 function enableCascadeInsert(EntityClass: Function, dataSource: DataSource): CascadeState[] {
   const states: CascadeState[] = [];
 
@@ -71,6 +88,10 @@ function enableCascadeInsert(EntityClass: Function, dataSource: DataSource): Cas
   return states;
 }
 
+/**
+ * Restores `isCascadeInsert` flags to their original values.
+ * Always called in a `finally` block to guarantee cleanup even when saving throws.
+ */
 function restoreCascade(states: CascadeState[]): void {
   for (const { relation, original } of states) {
     relation.isCascadeInsert = original;
@@ -146,6 +167,11 @@ export async function saveManySeed<T extends EntityInstance>(
   return await saveManySeedOne(classOrClasses as EntityConstructor<T>, options);
 }
 
+/**
+ * Creates and persists `count` instances of a single entity class.
+ * Enables cascade inserts on every entity class in the object graph before saving,
+ * then restores the original flags — regardless of whether the save succeeds or fails.
+ */
 async function saveManySeedOne<T extends EntityInstance>(
   EntityClass: EntityConstructor<T>,
   options: SaveManySeedOptions,

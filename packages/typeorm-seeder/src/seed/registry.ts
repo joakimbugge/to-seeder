@@ -6,7 +6,17 @@ export type EntityInstance = object;
 /** A constructor that produces an entity instance. */
 export type EntityConstructor<T extends EntityInstance = EntityInstance> = new () => T;
 
+/** Context passed through a seed operation. Available inside factory callbacks and `SeederInterface.run`. */
 export interface SeedContext {
+  /**
+   * The TypeORM DataSource. Automatically set by `save`/`saveMany` calls.
+   * Also available in factory callbacks — useful for looking up existing
+   * entities instead of creating new ones:
+   *
+   * @example
+   * @Seed(async ({ dataSource }) => dataSource.getRepository(Role).findOneByOrFail({ name: 'admin' }))
+   * role!: Role
+   */
   dataSource?: DataSource;
   /**
    * Set to `false` to skip automatic relation seeding. Scalar and embedded
@@ -22,7 +32,7 @@ export interface SeedContext {
 /** Factory callback passed to @Seed. Receives the seeder context, which may include a DataSource. */
 export type SeedFactory<T = unknown> = (context: SeedContext) => T | Promise<T>;
 
-/** Options passed to @Seed. */
+/** Options for the `@Seed` decorator. */
 export interface SeedOptions {
   /**
    * Number of related entities to create. Only meaningful on one-to-many and
@@ -49,6 +59,7 @@ export type MapToInstanceArrays<T extends readonly EntityConstructor[]> = {
 // Keyed by the entity class constructor.
 const registry = new Map<Function, SeedEntry[]>();
 
+/** Registers a seed entry for the given class constructor. Called internally by the `@Seed` decorator. */
 export function registerSeed(target: Function, entry: SeedEntry): void {
   const entries = registry.get(target) ?? [];
 
