@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.4.1...nest-typeorm-seeder-v0.5.0) (2026-03-28)
+
+
+### Features
+
+* **packages/nest-typeorm-seeder:** support seeders from paths ([8ecfb29](https://github.com/joakimbugge/to-seeder/commit/8ecfb2904f339801cb5ff8a5fcd01993af91cda5))
+
 ## [0.4.1](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.4.0...nest-typeorm-seeder-v0.4.1) (2026-03-27)
 
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.6.1...typeorm-seeder-v0.7.0) (2026-03-28)
+
+
+### Features
+
+* **packages/typeorm-seeder:** add CLI ([a1e64bc](https://github.com/joakimbugge/to-seeder/commit/a1e64bc776c0f9b85db8b61f4a32ade0dfbd65e8))
+* **packages/typeorm-seeder:** path loading and TypeORM logging ([e748969](https://github.com/joakimbugge/to-seeder/commit/e748969e0403d83844ca781f9f7685edb9a4b0b5))
+* **packages/typeorm-seeder:** support tree entities ([af0e097](https://github.com/joakimbugge/to-seeder/commit/af0e097b445e12a3f74349540bc56195b8fedc9a))
+
 ## [0.6.1](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.6.0...typeorm-seeder-v0.6.1) (2026-03-27)
 
 
