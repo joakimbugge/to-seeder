@@ -14,11 +14,6 @@ import type { EntityConstructor, EntityInstance } from './registry.js';
  * @example
  * const classes = await loadEntities([User, 'src/entities/*.js'])
  * const users = await seed(classes).saveMany(10, { dataSource })
- *
- * @example
- * // All entities from a glob, no manual imports
- * const classes = await loadEntities(['dist/entities/**\/*.js'])
- * await runSeeders([MySeeder], { dataSource, entities: classes })
  */
 export async function loadEntities(
   sources: (EntityConstructor | string)[],
