@@ -1,4 +1,4 @@
-import { type DynamicModule, Module } from '@nestjs/common';
+import { type DynamicModule, Global, Module } from '@nestjs/common';
 import type { RunSeedersOptions, SeederInterface } from '@joakimbugge/typeorm-seeder';
 import type { DataSource } from 'typeorm';
 import { SeederRunnerService, SEEDER_MODULE_OPTIONS } from './SeederRunnerService.js';
@@ -111,7 +111,15 @@ export interface SeederModuleAsyncOptions {
   useFactory: (...args: any[]) => SeederModuleOptions | Promise<SeederModuleOptions>;
 }
 
-@Module({})
+@Global()
+@Module({
+  providers: [
+    { provide: SEEDER_MODULE_OPTIONS, useValue: {} },
+    SeederRegistry,
+    SeederRunnerService,
+  ],
+  exports: [SeederRegistry],
+})
 export class SeederModule {
   /**
    * Registers `SeederModule` as a global module at the application root.
