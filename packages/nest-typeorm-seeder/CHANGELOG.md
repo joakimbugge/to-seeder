@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.5.0...nest-typeorm-seeder-v0.6.0) (2026-03-28)
+
+
+### Features
+
+* **packages/nest-typeorm-seeder:** finally enable bare SeederModule ([d2309a3](https://github.com/joakimbugge/to-seeder/commit/d2309a3cb717e4affbefdc65963bdd34ffa533df))
+* **packages/nest-typeorm-seeder:** support importing without forRoot() ([bbae7c3](https://github.com/joakimbugge/to-seeder/commit/bbae7c3e0b71786ebb743f3accd752163e0c8c3e))
+
+
+### Bug Fixes
+
+* **packages/nest-typeorm-seeder:** revert bare SeederModule, allow empty forRoot() ([262ba59](https://github.com/joakimbugge/to-seeder/commit/262ba59daa749029c34c14373a62475e19dc466d))
+
 ## [0.5.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.4.1...nest-typeorm-seeder-v0.5.0) (2026-03-28)
 
 
