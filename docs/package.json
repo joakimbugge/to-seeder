@@ -9,8 +9,11 @@
     "api:generate": "typedoc --options typedoc.typeorm-seeder.json && typedoc --options typedoc.nest-typeorm-seeder.json"
   },
   "devDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
     "typedoc": "^0.28.0",
     "typedoc-plugin-markdown": "^4.0.0",
+    "typeorm": "^0.3.0",
     "vitepress": "^1.6.0"
   }
 }

@@ -9,7 +9,10 @@
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": []
+    "types": [],
+    "paths": {
+      "@joakimbugge/typeorm-seeder": ["../packages/typeorm-seeder/src/index.ts"]
+    }
   },
   "files": ["../packages/nest-typeorm-seeder/src/index.ts"]
 }
