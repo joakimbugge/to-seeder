@@ -18,16 +18,14 @@ export class UserModule {}
 @Module({
   imports: [
     TypeOrmModule.forRoot({ ... }),
-    SeederModule,
+    SeederModule.forRoot(),
     UserModule,
   ],
 })
 export class AppModule {}
 ```
 
-`SeederModule` must always be imported at the root even when no seeders are declared there — it is the module that actually runs the seeders collected from `forFeature()`.
-
-Use `SeederModule.forRoot(options)` instead when you need to configure options such as `enabled`, `runOnce`, or `historyTableName`:
+`SeederModule.forRoot()` must always be called at the root even when no seeders are declared there — it is what actually runs the seeders collected from `forFeature()`. Options are only needed when configuring behaviour such as `enabled`, `runOnce`, or `historyTableName`:
 
 ```ts
 SeederModule.forRoot({ enabled: process.env.SEED === 'true' })
