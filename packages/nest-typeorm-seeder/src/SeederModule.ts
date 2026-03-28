@@ -1,4 +1,4 @@
-import { type DynamicModule, Module } from '@nestjs/common';
+import { type DynamicModule, Global, Module } from '@nestjs/common';
 import type { RunSeedersOptions, SeederInterface } from '@joakimbugge/typeorm-seeder';
 import type { DataSource } from 'typeorm';
 import { SeederRunnerService, SEEDER_MODULE_OPTIONS } from './SeederRunnerService.js';
@@ -111,14 +111,41 @@ export interface SeederModuleAsyncOptions {
   useFactory: (...args: any[]) => SeederModuleOptions | Promise<SeederModuleOptions>;
 }
 
+/**
+ * Internal host module for `forFeature()` registrations. Using a separate class
+ * ensures that `forFeature()` dynamic modules do not inherit `SeederModule`'s
+ * static providers (in particular `SeederRunnerService`), which would cause a
+ * second runner instance to bootstrap with empty options.
+ */
 @Module({})
+class SeederFeatureModule {}
+
+/**
+ * Seeder module. Import at the application root to activate seeding.
+ *
+ * When imported as a bare class (`SeederModule`) all configuration uses defaults —
+ * no root seeders, `runOnce` enabled, DataSource auto-resolved from `TypeOrmModule`.
+ * Use {@link forRoot} when you need to customise any of those options.
+ */
+@Global()
+@Module({
+  providers: [
+    { provide: SEEDER_MODULE_OPTIONS, useValue: {} },
+    SeederRegistry,
+    SeederRunnerService,
+  ],
+  exports: [SeederRegistry],
+})
 export class SeederModule {
   /**
-   * Registers `SeederModule` as a global module at the application root.
+   * Configures `SeederModule` at the application root with explicit options.
    *
    * Seeding runs on `onApplicationBootstrap`, which fires after TypeORM has fully
    * initialized — including schema synchronization and migrations — so no additional
    * waiting or ordering is needed.
+   *
+   * Omit `options` (or omit both `seeders` and `run`) when all seeders are registered
+   * via `forFeature()`.
    *
    * @example
    * SeederModule.forRoot({ seeders: [PostSeeder] })
@@ -131,11 +158,7 @@ export class SeederModule {
     return {
       global: true,
       module: SeederModule,
-      providers: [
-        { provide: SEEDER_MODULE_OPTIONS, useValue: options },
-        SeederRegistry,
-        SeederRunnerService,
-      ],
+      providers: [{ provide: SEEDER_MODULE_OPTIONS, useValue: options }],
       exports: [SeederRegistry],
     };
   }
@@ -164,8 +187,6 @@ export class SeederModule {
           inject: options.inject ?? [],
           useFactory: options.useFactory,
         },
-        SeederRegistry,
-        SeederRunnerService,
       ],
       exports: [SeederRegistry],
     };
@@ -178,7 +199,7 @@ export class SeederModule {
    * listing everything in the root module. The seeders are merged with any declared in
    * `forRoot` and run together on bootstrap.
    *
-   * Requires `SeederModule.forRoot()` to be imported somewhere in the application.
+   * Requires `SeederModule` or `SeederModule.forRoot()` to be imported somewhere in the application.
    *
    * @example
    * // In a feature module:
@@ -186,7 +207,7 @@ export class SeederModule {
    */
   static forFeature(seeders: (SeederCtor | string)[]): DynamicModule {
     return {
-      module: SeederModule,
+      module: SeederFeatureModule,
       providers: [{ provide: FEATURE_SEEDERS_TOKEN, useValue: seeders }, SeederFeatureService],
     };
   }

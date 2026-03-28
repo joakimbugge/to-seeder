@@ -207,6 +207,30 @@ describe('SeederModule', () => {
   });
 
   describe('forFeature', () => {
+    it('runs seeders using bare SeederModule with DataSource from the module graph', async () => {
+      const dataSource = await createDataSource().initialize();
+
+      @Module({
+        providers: [{ provide: DataSource, useValue: dataSource }],
+        exports: [DataSource],
+      })
+      class DatabaseModule {}
+
+      @Module({ imports: [SeederModule.forFeature([UserSeeder])] })
+      class UserModule {}
+
+      const moduleRef = await compileModule({
+        imports: [DatabaseModule, SeederModule, UserModule],
+      });
+
+      await moduleRef.init();
+
+      expect(await dataSource.getRepository(User).count()).toBe(1);
+
+      await moduleRef.close();
+      await dataSource.destroy();
+    });
+
     it('runs seeders registered in a feature module', async () => {
       const dataSource = await createDataSource().initialize();
 
