@@ -179,12 +179,89 @@ export async function saveMany<T extends EntityInstance>(
 }
 
 /**
- * Creates and persists `count` instances of a single entity class in one batched
- * `repository.save()` call. Batching is intentional — it is more efficient than
- * saving each instance individually, as TypeORM can consolidate the inserts.
+ * Returns true when EntityClass uses one of TypeORM's four tree strategies
+ * (`adjacency-list`, `materialized-path`, `closure-table`, `nested-set`).
+ */
+function isTreeEntity(EntityClass: Function, dataSource: DataSource): boolean {
+  try {
+    return !!dataSource.getMetadata(EntityClass).treeType;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Saves a single tree entity in three phases to satisfy TypeORM's tree executor requirements.
  *
- * Enables cascade inserts on every entity class in the object graph before saving,
- * then restores the original flags — regardless of whether the save succeeds or fails.
+ * TypeORM's tree executors (`MaterializedPathSubjectExecutor`, `NestedSetSubjectExecutor`,
+ * closure-table logic) cannot handle a fully-connected in-memory graph saved in one shot:
+ * - Materialized-path needs the parent's DB-assigned path before computing the child's path.
+ * - Nested-set needs to query existing left/right ranges before inserting a new node.
+ * - Closure-table needs the parent row present in the DB before writing closure-table rows.
+ *
+ * The three phases are:
+ * 1. Save the parent node (no dependencies) so it gets a DB-assigned ID/path/range.
+ * 2. Save the root with `parent` set but `children = []` — the executor sees a clean single-node save.
+ * 3. Save each child with `parent = savedRoot` so paths/ranges/closure rows are computed correctly.
+ */
+async function saveTreeEntity<T extends EntityInstance>(
+  EntityClass: EntityConstructor<T>,
+  entity: T,
+  dataSource: DataSource,
+): Promise<T> {
+  const metadata = dataSource.getMetadata(EntityClass);
+  const repo = dataSource.getTreeRepository(EntityClass);
+
+  const parentRelation = metadata.relations.find((r) => r.isTreeParent);
+  const childrenRelation = metadata.relations.find((r) => r.isTreeChildren);
+
+  const parentProp = parentRelation?.propertyName as keyof T | undefined;
+  const childrenProp = childrenRelation?.propertyName as keyof T | undefined;
+
+  const parent = parentProp ? (entity[parentProp] as T | undefined) : undefined;
+  const children = childrenProp ? ((entity[childrenProp] as T[] | undefined) ?? []) : [];
+
+  // Phase 1: save the parent node so it has a DB-assigned ID.
+  let savedParent: T | undefined;
+
+  if (parent) {
+    [savedParent] = (await repo.save([parent])) as T[];
+  }
+
+  // Phase 2: save root without children so the tree executor can assign its path/range
+  // relative to the parent without needing sibling context.
+  if (parentProp && savedParent) {
+    (entity as Record<string, unknown>)[String(parentProp)] = savedParent;
+  }
+
+  if (childrenProp) {
+    (entity as Record<string, unknown>)[String(childrenProp)] = [];
+  }
+
+  const [savedRoot] = (await repo.save([entity])) as T[];
+
+  // Phase 3: save children with root as their parent so paths/ranges/closure rows are correct.
+  if (children.length > 0 && parentProp) {
+    for (const child of children) {
+      (child as Record<string, unknown>)[String(parentProp)] = savedRoot;
+    }
+
+    await repo.save(children);
+    (savedRoot as Record<string, unknown>)[String(childrenProp!)] = children;
+  }
+
+  return savedRoot as T;
+}
+
+/**
+ * Creates and persists `count` instances of a single entity class.
+ *
+ * For regular entities this uses a single batched `repository.save()` call, which is
+ * more efficient because TypeORM can consolidate the inserts.
+ *
+ * For tree entities (`@Tree(...)`) a phased save is used instead: parent first, then
+ * root without children, then children with the root as parent. This satisfies the
+ * ordering requirements of TypeORM's tree executors for all four strategies.
  */
 async function saveBatch<T extends EntityInstance>(
   EntityClass: EntityConstructor<T>,
@@ -197,6 +274,12 @@ async function saveBatch<T extends EntityInstance>(
   }
 
   const entities = await createMany(EntityClass, options);
+
+  if (isTreeEntity(EntityClass, dataSource)) {
+    return await Promise.all(
+      entities.map((entity) => saveTreeEntity(EntityClass, entity, dataSource)),
+    );
+  }
 
   const visited = new Set<Function>();
   const states = entities

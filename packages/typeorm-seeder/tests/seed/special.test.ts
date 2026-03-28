@@ -237,11 +237,7 @@ describe('tree: materialized-path', () => {
     expect(item.parent!.parent).toBeUndefined();
   });
 
-  // TypeORM's MaterializedPathSubjectExecutor crashes when saving via standard
-  // repository with cascade-enabled children — it expects children to already
-  // be in a specific state that our in-memory graph does not satisfy.
-  // See: TODO.md — tree: materialized-path save
-  it.skip('saves a tree entity to the database', async () => {
+  it('saves a tree entity to the database', async () => {
     const item = await save(MaterializedPathItem, { dataSource });
 
     expect(item.id).toBeGreaterThan(0);
@@ -278,11 +274,7 @@ describe('tree: closure-table', () => {
     expect(item.parent!.parent).toBeUndefined();
   });
 
-  // TypeORM's closure-table strategy requires the parent to be persisted before
-  // its children. Our batch save builds the full in-memory graph first and saves
-  // in one shot, which violates this ordering constraint.
-  // See: TODO.md — tree: closure-table save
-  it.skip('saves a tree entity to the database', async () => {
+  it('saves a tree entity to the database', async () => {
     const item = await save(ClosureTableItem, { dataSource });
 
     expect(item.id).toBeGreaterThan(0);
@@ -319,11 +311,7 @@ describe('tree: nested-set', () => {
     expect(item.parent!.parent).toBeUndefined();
   });
 
-  // TypeORM's NestedSetSubjectExecutor crashes when saving via standard
-  // repository with an in-memory graph — nested-set requires left/right
-  // recalculation that depends on already-persisted sibling data.
-  // See: TODO.md — tree: nested-set save
-  it.skip('saves a tree entity to the database', async () => {
+  it('saves a tree entity to the database', async () => {
     const item = await save(NestedSetItem, { dataSource });
 
     expect(item.id).toBeGreaterThan(0);
