@@ -26,6 +26,8 @@ Coded by AI. Reviewed by humans.
 - [Skipping seeders](#skipping-seeders)
 - [Running seed scripts](#running-seed-scripts)
   - [TypeScript execution](#typescript-execution)
+- [Loading entities from paths](#loading-entities-from-paths)
+- [Loading seeders from paths](#loading-seeders-from-paths)
 - [API reference](#api-reference)
 
 ---
@@ -305,20 +307,22 @@ If you need full control — inserting specific rows, running raw queries, or us
 
 ## Logging
 
-By default `runSeeders` logs each seeder's progress to the console:
+By default `runSeeders` logs each seeder's progress:
 
 ```
 [UserSeeder] Starting...
 [UserSeeder] Done in 42ms
 ```
 
-When a seeder throws, the failure is logged to `console.error` before the error is re-thrown:
+When a seeder throws, a warning is logged before the error is re-thrown:
 
 ```
 [UserSeeder] Failed after 3ms
 ```
 
-Pass `logging: false` to silence all built-in output.
+Logging is routed through **TypeORM's own logger** when a `dataSource` is provided, so seeder output respects the same `logging` configuration as the rest of your TypeORM setup. To see seeder output, ensure your DataSource has `logging: true`, `logging: 'all'`, or `logging: ['log']`. Falls back to `console` when no `dataSource` is available.
+
+Pass `logging: false` to silence all built-in output regardless of TypeORM's configuration.
 
 ---
 
@@ -393,6 +397,41 @@ npx ts-node src/seed.ts
 
 ---
 
+## Loading entities from paths
+
+`loadEntities` resolves a mixed array of entity constructors and glob patterns into a flat array of constructors — the same format TypeORM accepts in its `entities` DataSource option:
+
+```ts
+import { loadEntities, seed } from '@joakimbugge/typeorm-seeder'
+
+const classes = await loadEntities([User, 'dist/entities/**/*.js'])
+await seed(classes).saveMany(10, { dataSource })
+```
+
+String entries are expanded with glob and each matched file is dynamically imported. Every exported class constructor found in the module is collected. Constructor entries are passed through as-is.
+
+---
+
+## Loading seeders from paths
+
+`loadSeeders` works the same way as `loadEntities` but collects only constructors decorated with `@Seeder`. Non-seeder exports in matched files are ignored.
+
+```ts
+import { loadSeeders, runSeeders } from '@joakimbugge/typeorm-seeder'
+
+const seeders = await loadSeeders(['dist/seeders/**/*.js'])
+await runSeeders(seeders, { dataSource })
+```
+
+Constructor entries are passed through as-is, so you can mix explicit references with glob patterns:
+
+```ts
+const seeders = await loadSeeders([UserSeeder, 'dist/seeders/Post*.js'])
+await runSeeders(seeders, { dataSource })
+```
+
+---
+
 ## API reference
 
 ### `@Seed(factory?, options?)`
@@ -461,6 +500,30 @@ seed([Author, Book]).saveMany(count, options): Promise<[Author[], Book[]]>
 | `dataSource` | `DataSource` | Required. Active TypeORM data source used to persist entities. |
 | `relations` | `boolean?` | Set to `false` to skip relation seeding. Defaults to `true`. |
 | `values` | `SeedValues<T>?` | Property values applied after seeding and before persisting. Each entry can be a static value or a factory called once per entity. Wins unconditionally — `@Seed` factories still execute but their output is overwritten. Also works for properties with no `@Seed` decorator. |
+
+---
+
+### `loadEntities(sources)`
+
+Resolves a mixed array of entity constructors and glob patterns to a flat array of constructors.
+
+```ts
+loadEntities(sources: (EntityConstructor | string)[]): Promise<EntityConstructor[]>
+```
+
+String entries are treated as glob patterns, expanded to file paths, and dynamically imported. Every exported class constructor found in the matched modules is collected. Constructor entries pass through unchanged.
+
+---
+
+### `loadSeeders(sources)`
+
+Resolves a mixed array of seeder constructors and glob patterns to a flat array of seeder constructors.
+
+```ts
+loadSeeders(sources: (SeederCtor | string)[]): Promise<SeederCtor[]>
+```
+
+Behaves identically to `loadEntities` except that only constructors decorated with `@Seeder` are collected — other exports in matched files are ignored. Constructor entries pass through unchanged.
 
 ---
 

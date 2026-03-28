@@ -9,8 +9,14 @@ export type SeederCtor = new () => SeederInterface;
 /** Options for {@link runSeeders}. Extends {@link SeedContext} with lifecycle hooks and logging control. */
 export interface RunSeedersOptions extends SeedContext {
   /**
-   * Enable console logging for each seeder. Set to `false` to silence output,
-   * e.g. when using callbacks to handle logging yourself.
+   * Enable logging for each seeder. Set to `false` to silence output entirely,
+   * e.g. when handling output yourself via hooks.
+   *
+   * When a `dataSource` is provided, logging is routed through TypeORM's own logger
+   * so that seeder output follows the same `logging` configuration as the rest of
+   * your TypeORM setup. If TypeORM logging is disabled (or does not include the
+   * `"log"` level), seeder output will be suppressed even when this is `true`.
+   * Falls back to `console` when no `dataSource` is available.
    *
    * @default true
    */
@@ -92,6 +98,16 @@ function topoSort(roots: SeederCtor[]): SeederCtor[] {
  *   onAfter: (seeder, ms) => console.log(`${seeder.name} done in ${ms}ms`),
  * })
  */
+function logMessage(level: 'log' | 'warn', message: string, context: SeedContext): void {
+  if (context.dataSource) {
+    context.dataSource.logger.log(level, message);
+  } else if (level === 'warn') {
+    console.error(message);
+  } else {
+    console.log(message);
+  }
+}
+
 export async function runSeeders(
   seeders: SeederCtor[],
   options: RunSeedersOptions = {},
@@ -104,7 +120,7 @@ export async function runSeeders(
     }
 
     if (logging) {
-      console.log(`[${SeederClass.name}] Starting...`);
+      logMessage('log', `[${SeederClass.name}] Starting...`, context);
     }
 
     await onBefore?.(SeederClass);
@@ -117,7 +133,7 @@ export async function runSeeders(
       const durationMs = Date.now() - start;
 
       if (logging) {
-        console.error(`[${SeederClass.name}] Failed after ${durationMs}ms`);
+        logMessage('warn', `[${SeederClass.name}] Failed after ${durationMs}ms`, context);
       }
 
       await onError?.(SeederClass, err);
@@ -127,7 +143,7 @@ export async function runSeeders(
     const durationMs = Date.now() - start;
 
     if (logging) {
-      console.log(`[${SeederClass.name}] Done in ${durationMs}ms`);
+      logMessage('log', `[${SeederClass.name}] Done in ${durationMs}ms`, context);
     }
 
     await onAfter?.(SeederClass, durationMs);

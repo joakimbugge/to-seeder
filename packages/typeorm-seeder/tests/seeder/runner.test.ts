@@ -443,6 +443,26 @@ describe('seeder suites', () => {
   });
 
   describe('logging', () => {
+    let loggingSource: DataSource;
+
+    beforeAll(async () => {
+      loggingSource = new DataSource({
+        type: 'better-sqlite3',
+        database: ':memory:',
+        synchronize: true,
+        logging: ['log', 'warn'],
+        entities: [],
+      });
+
+      await loggingSource.initialize();
+    });
+
+    afterAll(async () => {
+      if (loggingSource.isInitialized) {
+        await loggingSource.destroy();
+      }
+    });
+
     afterEach(() => {
       vi.restoreAllMocks();
     });
@@ -509,6 +529,72 @@ describe('seeder suites', () => {
 
       expect(logSpy).not.toHaveBeenCalled();
       expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it('routes logging through the TypeORM logger when a dataSource is provided', async () => {
+      const loggerSpy = vi.spyOn(loggingSource.logger, 'log');
+
+      @Seeder()
+      class TypeOrmLogSeeder {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await runSeeders([TypeOrmLogSeeder], { dataSource: loggingSource });
+
+      expect(loggerSpy).toHaveBeenCalledWith('log', expect.stringContaining('[TypeOrmLogSeeder]'));
+      expect(loggerSpy).toHaveBeenCalledWith('log', expect.stringContaining('Starting'));
+      expect(loggerSpy).toHaveBeenCalledWith('log', expect.stringContaining('Done'));
+    });
+
+    it('logs a failure at warn level through the TypeORM logger', async () => {
+      const loggerSpy = vi.spyOn(loggingSource.logger, 'log');
+
+      @Seeder()
+      class TypeOrmWarnSeeder {
+        async run(_ctx: SeedContext) {
+          throw new Error('fail');
+        }
+      }
+
+      await expect(
+        runSeeders([TypeOrmWarnSeeder], { dataSource: loggingSource }),
+      ).rejects.toThrow();
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'warn',
+        expect.stringContaining('[TypeOrmWarnSeeder]'),
+      );
+    });
+
+    it('does not call the TypeORM logger when logging is false', async () => {
+      const loggerSpy = vi.spyOn(loggingSource.logger, 'log');
+
+      @Seeder()
+      class TypeOrmSilentSeeder {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await runSeeders([TypeOrmSilentSeeder], { dataSource: loggingSource, logging: false });
+
+      expect(loggerSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls the TypeORM logger even when TypeORM logging is disabled — suppression happens internally', async () => {
+      // dataSource has logging: false so TypeORM suppresses the output, but we still
+      // call logger.log() — the documented behaviour is that seeder logging follows
+      // TypeORM's own logging config, and console is never used when a dataSource is present.
+      const loggerSpy = vi.spyOn(dataSource.logger, 'log');
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      @Seeder()
+      class TypeOrmDisabledLogSeeder {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await runSeeders([TypeOrmDisabledLogSeeder], { dataSource });
+
+      expect(loggerSpy).toHaveBeenCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
   });
 
