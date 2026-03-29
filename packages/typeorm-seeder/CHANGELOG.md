@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.7.0...typeorm-seeder-v0.8.0) (2026-03-29)
+
+
+### Features
+
+* **packages/typeorm-seeder:** collect returns from seeder suites ([28a400d](https://github.com/joakimbugge/to-seeder/commit/28a400dd0fd49b3ce8d73472227d8b25cac960af))
+* **packages/typeorm-seeder:** custom logger option ([c5fe394](https://github.com/joakimbugge/to-seeder/commit/c5fe394cbc77be57bca245f7e828b1dc1ec3cd05))
+
 ## [0.7.0](https://github.com/joakimbugge/to-seeder/compare/typeorm-seeder-v0.6.1...typeorm-seeder-v0.7.0) (2026-03-28)
 
 

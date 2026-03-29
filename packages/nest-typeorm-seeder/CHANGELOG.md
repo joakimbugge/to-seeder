@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.6.0...nest-typeorm-seeder-v0.7.0) (2026-03-29)
+
+
+### Features
+
+* **packages/nest-typeorm-seeder:** toggle logging option ([b398195](https://github.com/joakimbugge/to-seeder/commit/b3981950de46069ee977a6d0f2f572e063c2c3f2))
+
 ## [0.6.0](https://github.com/joakimbugge/to-seeder/compare/nest-typeorm-seeder-v0.5.0...nest-typeorm-seeder-v0.6.0) (2026-03-28)
 
 
