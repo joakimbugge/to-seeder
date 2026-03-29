@@ -33,6 +33,7 @@ Registers seeders scoped to a feature module. Accepts an array of `(SeederCtor |
 | `dataSource` | `DataSource?` | — | Explicit DataSource. When omitted, the module resolves the DataSource registered by `TypeOrmModule`. |
 | `relations` | `boolean?` | `true` | Passed through to `runSeeders`. Set to `false` to skip relation seeding. |
 | `enabled` | `boolean?` | `true` | When `false`, seeding is skipped entirely. Useful for gating on an environment variable. |
+| `logging` | `boolean?` | `true` | When `false`, suppresses all seeder progress output. When `true`, logs via NestJS's own `Logger` — output follows NestJS's logging configuration. |
 | `onBefore` | `(seeder) => void \| Promise<void>` | — | Called before each seeder runs. |
 | `onAfter` | `(seeder, durationMs) => void \| Promise<void>` | — | Called after each seeder completes successfully. |
 | `onError` | `(seeder, error) => void \| Promise<void>` | — | Called when a seeder throws. The error is still re-thrown after this returns. |

@@ -93,6 +93,23 @@ describe('SeederModule', () => {
     });
   });
 
+  describe('logging', () => {
+    it('still runs seeders when logging is false', async () => {
+      const dataSource = await createDataSource().initialize();
+
+      const moduleRef = await compileModule({
+        imports: [SeederModule.forRoot({ seeders: [UserSeeder], dataSource, logging: false })],
+      });
+
+      await moduleRef.init();
+
+      expect(await dataSource.getRepository(User).count()).toBe(1);
+
+      await moduleRef.close();
+      await dataSource.destroy();
+    });
+  });
+
   describe('enabled', () => {
     it('skips seeding when enabled is false', async () => {
       const dataSource = await createDataSource().initialize();

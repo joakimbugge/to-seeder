@@ -32,6 +32,13 @@ interface SeederModuleBaseOptions extends Pick<
    * @default true
    */
   enabled?: boolean;
+  /**
+   * When `false`, suppresses all seeder progress output. When `true` (default),
+   * logs via NestJS's own `Logger` — output follows NestJS's logging configuration.
+   *
+   * @default true
+   */
+  logging?: boolean;
 }
 
 interface SeederModuleSeedersOptions extends SeederModuleBaseOptions {

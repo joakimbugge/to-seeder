@@ -21,7 +21,7 @@ const DEFAULT_HISTORY_TABLE = 'seeders';
  */
 @Injectable()
 export class SeederRunnerService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(SeederRunnerService.name);
+  private readonly logger = new Logger('SeederModule');
 
   constructor(
     @Inject(SEEDER_MODULE_OPTIONS) private readonly options: SeederModuleOptions,
@@ -49,6 +49,8 @@ export class SeederRunnerService implements OnApplicationBootstrap {
         executedSeeders = await this.getExecutedSeeders(dataSource, tableName);
       }
 
+      const logging = this.options.logging !== false;
+
       await runSeeders(seeders, {
         dataSource,
         relations: this.options.relations,
@@ -56,14 +58,17 @@ export class SeederRunnerService implements OnApplicationBootstrap {
         skip: (seeder) => {
           const shouldSkip = executedSeeders.has(seeder.name);
 
-          if (shouldSkip) {
+          if (shouldSkip && logging) {
             this.logger.log(`[${seeder.name}] Skipping (already run)`);
           }
 
           return shouldSkip;
         },
         onBefore: async (seeder) => {
-          this.logger.log(`[${seeder.name}] Starting...`);
+          if (logging) {
+            this.logger.log(`[${seeder.name}] Starting...`);
+          }
+
           await this.options.onBefore?.(seeder);
         },
         onAfter: async (seeder, durationMs) => {
@@ -71,14 +76,20 @@ export class SeederRunnerService implements OnApplicationBootstrap {
             await this.recordRun(dataSource, tableName, seeder.name);
           }
 
-          this.logger.log(`[${seeder.name}] Done in ${durationMs}ms`);
+          if (logging) {
+            this.logger.log(`[${seeder.name}] Done in ${durationMs}ms`);
+          }
+
           await this.options.onAfter?.(seeder, durationMs);
         },
         onError: async (seeder, error) => {
-          this.logger.error(
-            `[${seeder.name}] Failed`,
-            error instanceof Error ? error.stack : String(error),
-          );
+          if (logging) {
+            this.logger.error(
+              `[${seeder.name}] Failed`,
+              error instanceof Error ? error.stack : String(error),
+            );
+          }
+
           await this.options.onError?.(seeder, error);
         },
       });
