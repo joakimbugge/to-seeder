@@ -13,7 +13,7 @@ import type {
 export type { CreateOptions } from './creator.js';
 
 /** Seed builder for a single entity class. Returned by {@link seed} when passed one class. */
-interface SingleSeed<T extends EntityInstance> {
+export interface SingleSeed<T extends EntityInstance> {
   /** Creates a single instance in memory without persisting. */
   create(context?: CreateOptions<T>): Promise<T>;
   /** Creates and persists a single instance. */
@@ -29,7 +29,7 @@ interface SingleSeed<T extends EntityInstance> {
  * Each method returns a tuple of instances in the same order as the input array.
  * Relation seeding is disabled by default; pass `relations: true` in the context to enable it.
  */
-interface MultiSeed<T extends readonly EntityConstructor[]> {
+export interface MultiSeed<T extends readonly EntityConstructor[]> {
   /** Creates one instance of each class in memory without persisting. */
   create(context?: SeedContext): Promise<MapToInstances<T>>;
   /** Creates and persists one instance of each class. */

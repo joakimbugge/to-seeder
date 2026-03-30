@@ -16,7 +16,10 @@ export type {
   SeedFactory,
   SeedOptions,
   SeedEntry,
+  MapToInstances,
+  MapToInstanceArrays,
 } from './seed/registry.js';
+export type { SingleSeed, MultiSeed } from './seed/builder.js';
 export type { CreateOptions, CreateManyOptions, SeedValues } from './seed/creator.js';
 export type { SaveOptions, SaveManyOptions } from './seed/persist.js';
 export type { SeederInterface, SeederOptions } from './seeder/decorator.js';

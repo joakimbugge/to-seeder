@@ -61,7 +61,7 @@ export interface SeedOptions {
 
 export interface SeedEntry {
   propertyKey: string | symbol;
-  /** Undefined when @Seed is used without a factory (i.e. bare relation seed). */
+  /** Undefined when `@Seed` is used without a factory (i.e. bare relation seed). */
   factory: SeedFactory | undefined;
   options: SeedOptions;
 }

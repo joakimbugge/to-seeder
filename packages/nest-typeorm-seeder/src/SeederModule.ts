@@ -41,7 +41,7 @@ interface SeederModuleBaseOptions extends Pick<
   logging?: boolean;
 }
 
-interface SeederModuleSeedersOptions extends SeederModuleBaseOptions {
+export interface SeederModuleSeedersOptions extends SeederModuleBaseOptions {
   /** Seeder classes or glob patterns resolving to seeder files. Transitive dependencies are resolved automatically. */
   seeders: (SeederCtor | string)[];
   /**
@@ -67,7 +67,7 @@ interface SeederModuleSeedersOptions extends SeederModuleBaseOptions {
   historyTableName?: string;
 }
 
-interface SeederModuleRunOptions extends SeederModuleBaseOptions {
+export interface SeederModuleRunOptions extends SeederModuleBaseOptions {
   seeders?: never;
   /**
    * Inline callback executed on every boot. runOnce is false.
@@ -78,7 +78,7 @@ interface SeederModuleRunOptions extends SeederModuleBaseOptions {
 }
 
 /** Root module configured with no seeders of its own — all seeders come from `forFeature()`. */
-interface SeederModuleFeatureOnlyOptions extends SeederModuleBaseOptions {
+export interface SeederModuleFeatureOnlyOptions extends SeederModuleBaseOptions {
   seeders?: never;
   run?: never;
   runOnce?: boolean;
