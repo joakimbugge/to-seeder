@@ -55,4 +55,20 @@ describe('@Seed', () => {
     expect(typeof value).toBe('string');
     expect((value as string).length).toBeGreaterThan(0);
   });
+
+  it('inherits @Seed entries from parent classes, parent entries first', () => {
+    class Base {
+      @Seed(() => 'base-value')
+      baseField!: string;
+    }
+
+    class Child extends Base {
+      @Seed(() => 'child-value')
+      childField!: string;
+    }
+
+    const entries = getSeeds(Child);
+
+    expect(entries.map((e) => e.propertyKey)).toEqual(['baseField', 'childField']);
+  });
 });

@@ -86,5 +86,24 @@ describe('SeederModule', () => {
       await moduleRef.close();
       await dataSource.destroy();
     });
+
+    it('runs seeders when forRootAsync is called without imports or inject', async () => {
+      const dataSource = await createDataSource().initialize();
+
+      const moduleRef = await compileModule({
+        imports: [
+          SeederModule.forRootAsync({
+            useFactory: () => ({ seeders: [UserSeeder], dataSource }),
+          }),
+        ],
+      });
+
+      await moduleRef.init();
+
+      expect(await dataSource.getRepository(User).count()).toBe(1);
+
+      await moduleRef.close();
+      await dataSource.destroy();
+    });
   });
 });

@@ -29,4 +29,15 @@ describe('loadDataSource()', () => {
 
     await ds.destroy();
   });
+
+  it('exits when no path is provided and no config file exists in cwd', async () => {
+    const exitSpy = mockExit();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(process, 'cwd').mockReturnValue('/nonexistent-dir-loadds-test');
+
+    await expect(loadDataSource()).rejects.toThrow('process.exit');
+
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('No DataSource found'));
+  });
 });

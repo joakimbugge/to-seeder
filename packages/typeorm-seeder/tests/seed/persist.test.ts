@@ -264,6 +264,12 @@ describe('array form — save / saveMany', () => {
   });
 
   describe('saveMany', () => {
+    it('returns an empty array when count is 0', async () => {
+      const [writers] = await saveMany([ArrayWriter], { count: 0, dataSource });
+
+      expect(writers).toEqual([]);
+    });
+
     it('persists arrays of instances per class', async () => {
       const [writers, publishers] = await saveMany([ArrayWriter, ArrayPublisher], {
         count: 2,

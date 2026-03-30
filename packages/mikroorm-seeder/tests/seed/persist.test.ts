@@ -252,6 +252,13 @@ describe('array form — save / saveMany', () => {
   });
 
   describe('saveMany', () => {
+    it('returns an empty array when count is 0', async () => {
+      const em = orm.em.fork();
+      const [writers] = await saveMany([ArrayWriter], { count: 0, em });
+
+      expect(writers).toEqual([]);
+    });
+
     it('persists arrays of instances per class', async () => {
       const em = orm.em.fork();
       const [writers, publishers] = await saveMany([ArrayWriter, ArrayPublisher], {

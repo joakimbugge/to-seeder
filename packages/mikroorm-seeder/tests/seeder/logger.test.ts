@@ -7,6 +7,7 @@ import { SqliteDriver } from '@mikro-orm/sqlite';
 import type { SeederLogger } from '../../src';
 import type { SeedContext } from '../../src';
 import { runSeeders, Seeder } from '../../src';
+import { ConsoleLogger } from '../../src/seeder/logger.js';
 
 // MikroORM requires at least one entity to initialize.
 @Entity()
@@ -199,5 +200,31 @@ describe('logging', () => {
 
     expect(logSpy).not.toHaveBeenCalled();
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('ConsoleLogger', () => {
+  it('delegates each method to the corresponding console method', () => {
+    const logger = new ConsoleLogger();
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+
+    logger.log('log');
+    logger.info('info');
+    logger.warn('warn');
+    logger.error('error');
+    logger.debug('debug');
+
+    expect(logSpy).toHaveBeenCalledWith('log');
+    expect(infoSpy).toHaveBeenCalledWith('info');
+    expect(warnSpy).toHaveBeenCalledWith('warn');
+    expect(errorSpy).toHaveBeenCalledWith('error');
+    expect(debugSpy).toHaveBeenCalledWith('debug');
+
+    vi.restoreAllMocks();
   });
 });

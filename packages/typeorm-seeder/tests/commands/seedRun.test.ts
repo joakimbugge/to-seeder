@@ -9,6 +9,10 @@ const fixturesDir = path.resolve(fileURLToPath(import.meta.url), '../../fixtures
 const datasourcePath = path.resolve(fixturesDir, 'datasources/FixtureDataSource.ts');
 const seedersGlob = path.resolve(fixturesDir, 'seeders/*.ts');
 
+// The TypeScript import error path (isTypeScriptImportError → printTypeScriptError → process.exit)
+// is not tested here. It only fires when Node tries to import a .ts file without a registered
+// loader (ERR_UNKNOWN_FILE_EXTENSION), which cannot be reproduced in the vitest environment
+// because vitest transforms TypeScript automatically. That code path is tested in errors.test.ts.
 describe('seedRunCommand()', () => {
   afterEach(() => vi.restoreAllMocks());
 

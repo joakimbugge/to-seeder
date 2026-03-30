@@ -88,5 +88,24 @@ describe('SeederModule', () => {
       await moduleRef.close();
       await orm.close();
     });
+
+    it('runs seeders when forRootAsync is called without imports or inject', async () => {
+      const orm = await createOrm();
+
+      const moduleRef = await compileModule({
+        imports: [
+          SeederModule.forRootAsync({
+            useFactory: () => ({ seeders: [UserSeeder], em: orm.em.fork() }),
+          }),
+        ],
+      });
+
+      await moduleRef.init();
+
+      expect(await orm.em.fork().count(User)).toBe(1);
+
+      await moduleRef.close();
+      await orm.close();
+    });
   });
 });

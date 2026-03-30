@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { runSeeders } from '../../src';
 import { registerSeeder } from '../../src/seeder/registry.js';
 
+// The `throw err` re-throw branch at the end of sortSeeders() is not tested.
+// It fires only when dependency-graph throws an error that lacks a `cyclePath` property,
+// which never happens in practice — the library exclusively throws cyclePath errors.
 describe('circular dependencies', () => {
   it('throws when a cycle is detected', async () => {
     class CycleA {
