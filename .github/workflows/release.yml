@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       tags:
-        description: 'Space-separated git tags to publish (e.g. typeorm-seeder-v0.3.0 nest-typeorm-seeder-v0.2.0)'
+        description: 'Space-separated package tags to publish (e.g. @joakimbugge/typeorm-seeder@0.9.0)'
         required: true
       dist-tag:
-        description: 'npm dist-tag (use "backfill" for older versions, "latest" for the newest)'
+        description: 'npm dist-tag (use "backfill" for older versions, "latest" for newest)'
         required: true
         default: latest
 
@@ -20,27 +20,42 @@ permissions:
   pull-requests: write
 
 jobs:
-  release-please:
+  release:
     if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      paths_released: ${{ steps.release.outputs.paths_released }}
+      published: ${{ steps.changesets.outputs.published }}
 
     steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
+      - uses: actions/checkout@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-  publish:
-    needs: release-please
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm -r run build
+
+      - uses: changesets/action@v1
+        id: changesets
+        with:
+          publish: pnpm changeset publish
+          title: 'chore: release packages'
+          commit: 'chore: release packages'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-backfill:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    if: |
-      always() && (
-        (github.event_name == 'workflow_run' && needs.release-please.result == 'success' && needs.release-please.outputs.releases_created == 'true') ||
-        github.event_name == 'workflow_dispatch'
-      )
     permissions:
       contents: read
       id-token: write
@@ -60,23 +75,16 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Publish released packages
-        if: github.event_name == 'workflow_run'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          for path in $(echo '${{ needs.release-please.outputs.paths_released }}' | jq -r '.[]'); do
-            pnpm --filter "./$path" run build
-            cd "$path" && npm publish --access public && cd -
-          done
-
       - name: Publish packages from tags
-        if: github.event_name == 'workflow_dispatch'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for tag in ${{ inputs.tags }}; do
-            pkg=$(echo "$tag" | sed 's/-v[0-9].*//')
+            if echo "$tag" | grep -q '^@'; then
+              pkg=$(echo "$tag" | sed 's/@joakimbugge\///' | sed 's/@[0-9].*//')
+            else
+              pkg=$(echo "$tag" | sed 's/-v[0-9].*//')
+            fi
             path="packages/$pkg"
             git checkout "$tag" -- "$path"
             pnpm --filter "./$path" run build
@@ -84,8 +92,8 @@ jobs:
           done
 
   docs-build:
-    needs: publish
-    if: github.event_name == 'workflow_run' && needs.publish.result == 'success'
+    needs: release
+    if: needs.release.result == 'success' && needs.release.outputs.published == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
