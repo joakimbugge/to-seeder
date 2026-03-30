@@ -7,7 +7,7 @@ NestJS module for [mikroorm-seeder](../mikroorm-seeder). Runs your `@Seeder` cla
 
 Coded by AI. Reviewed by humans.
 
-📖 **[Full documentation](https://joakimbugge.github.io/to-seeder/nest-mikroorm/)** · [API reference](https://joakimbugge.github.io/to-seeder/nest-mikroorm/api)
+📖 **[Full documentation](https://joakimbugge.github.io/seeders/nest-mikroorm/)** · [API reference](https://joakimbugge.github.io/seeders/api/nest-mikroorm-seeder/)
 
 ---
 

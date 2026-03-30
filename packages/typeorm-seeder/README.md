@@ -7,7 +7,7 @@ Decorator-based entity seeding for TypeORM. Annotate your entity properties with
 
 Coded by AI. Reviewed by humans.
 
-📖 **[Full documentation](https://joakimbugge.github.io/to-seeder/)** · [API reference](https://joakimbugge.github.io/to-seeder/guide/api)
+📖 **[Full documentation](https://joakimbugge.github.io/seeders/)** · [API reference](https://joakimbugge.github.io/seeders/api/typeorm-seeder/)
 
 ---
 

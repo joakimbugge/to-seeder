@@ -7,7 +7,7 @@ Decorator-based entity seeding for MikroORM. Annotate your entity properties wit
 
 Coded by AI. Reviewed by humans.
 
-📖 **[Full documentation](https://joakimbugge.github.io/to-seeder/mikroorm/)** · [API reference](https://joakimbugge.github.io/to-seeder/mikroorm/api)
+📖 **[Full documentation](https://joakimbugge.github.io/seeders/mikroorm/)** · [API reference](https://joakimbugge.github.io/seeders/api/mikroorm-seeder/)
 
 ---
 

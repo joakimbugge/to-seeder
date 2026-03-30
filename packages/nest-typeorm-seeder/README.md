@@ -7,7 +7,7 @@ NestJS module for [typeorm-seeder](../typeorm-seeder). Runs your `@Seeder` class
 
 Coded by AI. Reviewed by humans.
 
-📖 **[Full documentation](https://joakimbugge.github.io/to-seeder/nest/)** · [API reference](https://joakimbugge.github.io/to-seeder/nest/api)
+📖 **[Full documentation](https://joakimbugge.github.io/seeders/nest/)** · [API reference](https://joakimbugge.github.io/seeders/api/nest-typeorm-seeder/)
 
 ---
 
