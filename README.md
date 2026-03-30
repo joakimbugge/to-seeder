@@ -151,7 +151,25 @@ pnpm install
 
 ### Release
 
-Releases are automated with [release-please](https://github.com/googleapis/release-please). Each package is versioned independently. Merging a release PR to `main` publishes the package to npm.
+Releases are managed with [changesets](https://github.com/changesets/changesets). Each package is versioned independently.
+
+**1. Add a changeset**
+
+Run this at any point while working on your changes — once per logical release, not per commit:
+
+```bash
+pnpm changeset
+```
+
+Select the affected packages, choose a bump type (patch / minor / major), and write a short summary. This creates a `.changeset/*.md` file — commit it alongside your changes.
+
+**2. Push to `main`**
+
+Once your commits and the changeset file land on `main`, CI runs and the release workflow automatically opens a "chore: release packages" PR. That PR bumps the versions and updates each package's `CHANGELOG.md`.
+
+**3. Merge the release PR**
+
+Merging triggers another run of the release workflow, which publishes all bumped packages to npm and redeploys the docs.
 
 ## License
 
