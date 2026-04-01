@@ -20,11 +20,11 @@ Affects `typeorm-seeder` and `mikroorm-seeder` CLIs.
 
 ---
 
-## Parallel seeder execution
+## ~~Parallel seeder execution~~ ✓ done
 
-`runSeeders` executes seeders sequentially even when multiple seeders at the same topological level have no dependency on each other. Running independent levels in parallel would reduce total time for large suites.
+~~`runSeeders` executes seeders sequentially even when multiple seeders at the same topological level have no dependency on each other.~~
 
-Affects all four packages.
+`topoSort` replaced with `buildLevels`, which groups nodes by depth (`level = max(dep levels) + 1`). `runSeeders` iterates levels sequentially but runs each level's seeders with `Promise.all`.
 
 ---
 
