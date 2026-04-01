@@ -8,7 +8,9 @@ To use `.ts` files directly, install `ts-node` as a dev dependency and the CLI w
 
 ## `seed:run`
 
-Loads all `@Seeder`-decorated classes from a glob pattern and runs them in topological order:
+Loads all `@Seeder`-decorated classes from a glob pattern and runs them in topological order.
+
+Pass `--dry-run` (`-n`) to see which seeders would run without executing them or touching the database:
 
 ::: code-group
 
@@ -26,9 +28,21 @@ pnpm exec @joakimbugge/mikroorm-seeder seed:run './src/seeders/*.ts' -o ./src/or
 
 :::
 
+```bash
+npx @joakimbugge/mikroorm-seeder seed:run './src/seeders/*.ts' --dry-run
+# Dry run — seeders will not run
+#
+# 3 seeders found:
+#   UserSeeder
+#   PostSeeder
+#   CommentSeeder
+```
+
 ## `seed:entities`
 
-Loads entity constructors from a glob pattern, filters to those with at least one `@Seed` decorator, and persists `--count` instances of each (default: 1):
+Loads entity constructors from a glob pattern, filters to those with at least one `@Seed` decorator, and persists `--count` instances of each (default: 1).
+
+Pass `--dry-run` (`-n`) to create entities in memory and print them without writing to the database:
 
 ::: code-group
 
@@ -45,6 +59,16 @@ pnpm exec @joakimbugge/mikroorm-seeder seed:entities './src/entities/*.ts' -o ./
 ```
 
 :::
+
+```bash
+npx @joakimbugge/mikroorm-seeder seed:entities './src/entities/*.ts' --dry-run --count 3
+# Dry run — nothing will be written to the database
+#
+# 3 × User
+# User { name: 'Alice Smith', email: 'alice@example.com', age: 27 }
+# User { name: 'Bob Jones', email: 'bob@example.com', age: 34 }
+# User { name: 'Carol White', email: 'carol@example.com', age: 22 }
+```
 
 ## `seed:untrack`
 

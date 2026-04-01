@@ -39,17 +39,15 @@ If the class-based hybrid form works, no library changes may be needed — just 
 
 ---
 
-## MikroORM tree entities
+## ~~MikroORM tree entities~~ ✓ done
 
-MikroORM v7 does not have tree entity support at the ORM level — there are no `@Tree`, `@TreeParent`, or `@TreeChildren` decorators. Parity with the TypeORM `guide/tree-entities.md` page is therefore not applicable. No documentation or implementation work needed.
+MikroORM v7 does not have tree entity support at the ORM level. Not applicable.
 
 ---
 
-## `--dry-run` CLI flag
+## ~~`--dry-run` CLI flag~~ ✓ done
 
-No way to preview what `seed:run` or `seed:entities` would execute without writing to the database. Useful for CI pipelines and sanity checks.
-
-Affects `typeorm-seeder` and `mikroorm-seeder` CLIs.
+Both `seed:run` and `seed:entities` now accept `--dry-run` / `-n`. `seed:entities` creates entities in memory and prints them with `util.inspect`; `seed:run` prints the list of seeders that would execute. No database connection is established in either case.
 
 ---
 

@@ -1,4 +1,4 @@
-import { parseArgs } from 'node:util';
+import { inspect, parseArgs } from 'node:util';
 import { seed } from '../index.js';
 import { getSeeds } from '../seed/registry.js';
 import { loadEntities } from '../utils/loadEntities.js';
@@ -17,12 +17,13 @@ export async function seedEntitiesCommand(args: string[]): Promise<void> {
     options: {
       orm: { type: 'string', short: 'o' },
       count: { type: 'string', default: '1' },
+      'dry-run': { type: 'boolean', short: 'n' },
     },
     allowPositionals: true,
   });
 
   if (positionals.length === 0) {
-    console.error('Usage: seed:entities <glob...> [--orm/-o <path>] [--count N=1]');
+    console.error('Usage: seed:entities <glob...> [--orm/-o <path>] [--count N=1] [--dry-run/-n]');
     process.exit(1);
   }
 
@@ -33,29 +34,47 @@ export async function seedEntitiesCommand(args: string[]): Promise<void> {
     process.exit(1);
   }
 
+  let entities: Awaited<ReturnType<typeof loadEntities>>;
+
+  try {
+    entities = await loadEntities(positionals);
+  } catch (err) {
+    if (isTypeScriptImportError(err)) {
+      printTypeScriptError('seed:entities');
+      process.exit(1);
+    }
+
+    throw err;
+  }
+
+  const seeded = entities.filter((EntityClass) => getSeeds(EntityClass).length > 0);
+
+  if (seeded.length === 0) {
+    console.log('No entities with @Seed decorators found.');
+    return;
+  }
+
+  if (values['dry-run']) {
+    console.log('Dry run — nothing will be written to the database\n');
+
+    for (const EntityClass of seeded) {
+      const instances = await seed(EntityClass).createMany(count);
+
+      console.log(`${count} × ${EntityClass.name}`);
+
+      for (const instance of instances) {
+        console.log(inspect(instance, { depth: null, colors: true, compact: false }));
+      }
+
+      console.log();
+    }
+
+    return;
+  }
+
   const orm = await loadOrm(values.orm);
 
   try {
-    let entities: Awaited<ReturnType<typeof loadEntities>>;
-
-    try {
-      entities = await loadEntities(positionals);
-    } catch (err) {
-      if (isTypeScriptImportError(err)) {
-        printTypeScriptError('seed:entities');
-        process.exit(1);
-      }
-
-      throw err;
-    }
-
-    const seeded = entities.filter((EntityClass) => getSeeds(EntityClass).length > 0);
-
-    if (seeded.length === 0) {
-      console.log('No entities with @Seed decorators found.');
-      return;
-    }
-
     const em = orm.em.fork();
 
     for (const EntityClass of seeded) {
