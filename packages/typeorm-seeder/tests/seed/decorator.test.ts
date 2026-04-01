@@ -51,7 +51,7 @@ describe('@Seed', () => {
     }
 
     const [entry] = getSeeds(Product);
-    const value = await entry.factory!({}, {});
+    const value = await entry.factory!({}, {}, 0);
     expect(typeof value).toBe('string');
     expect((value as string).length).toBeGreaterThan(0);
   });
