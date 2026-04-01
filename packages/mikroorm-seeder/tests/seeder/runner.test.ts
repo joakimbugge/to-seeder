@@ -447,6 +447,78 @@ describe('seeder suites', () => {
     });
   });
 
+  describe('parallel execution', () => {
+    it('runs independent seeders concurrently', async () => {
+      const starts: number[] = [];
+      const ends: number[] = [];
+
+      const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+      @Seeder()
+      class ParallelA {
+        async run(_ctx: SeedContext) {
+          starts.push(Date.now());
+          await delay(50);
+          ends.push(Date.now());
+        }
+      }
+
+      @Seeder()
+      class ParallelB {
+        async run(_ctx: SeedContext) {
+          starts.push(Date.now());
+          await delay(50);
+          ends.push(Date.now());
+        }
+      }
+
+      const wallStart = Date.now();
+      await runSeeders([ParallelA, ParallelB], { logging: false });
+      const wallDuration = Date.now() - wallStart;
+
+      // Both seeders started before either finished — they overlapped
+      expect(starts).toHaveLength(2);
+      expect(ends).toHaveLength(2);
+      expect(Math.max(...starts)).toBeLessThan(Math.min(...ends));
+
+      // Total wall time is closer to 50ms than to 100ms
+      expect(wallDuration).toBeLessThan(90);
+    });
+
+    it('waits for all seeders in a level before starting the next level', async () => {
+      const order: string[] = [];
+      const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+      @Seeder()
+      class DiamondA {
+        async run(_ctx: SeedContext) {
+          await delay(30);
+          order.push('A');
+        }
+      }
+
+      @Seeder()
+      class DiamondB {
+        async run(_ctx: SeedContext) {
+          await delay(10);
+          order.push('B');
+        }
+      }
+
+      @Seeder({ dependencies: [DiamondA, DiamondB] })
+      class DiamondC {
+        async run(_ctx: SeedContext) {
+          order.push('C');
+        }
+      }
+
+      await runSeeders([DiamondC], { logging: false });
+
+      // A and B run concurrently (B finishes first due to shorter delay), then C
+      expect(order).toEqual(['B', 'A', 'C']);
+    });
+  });
+
   describe('return values', () => {
     it('returns a Map with the return value of each seeder', async () => {
       const users = [{ id: 1 }, { id: 2 }];

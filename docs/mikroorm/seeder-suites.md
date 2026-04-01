@@ -29,6 +29,23 @@ await runSeeders([PostSeeder], { em })
 
 Circular dependencies between seeders are detected at runtime and throw an error naming the seeders involved.
 
+## Execution order
+
+Dependencies always complete before the seeders that declare them. Seeders that have no dependency relationship with each other run **concurrently**.
+
+In the diamond pattern below, `UserSeeder` and `PostSeeder` have no dependency on each other so they run at the same time. `ReportSeeder` starts only after both have finished:
+
+```ts
+@Seeder()
+class UserSeeder { … }          // ┐ run concurrently
+                                // │
+@Seeder()                       // │
+class PostSeeder { … }          // ┘
+
+@Seeder({ dependencies: [UserSeeder, PostSeeder] })
+class ReportSeeder { … }        // starts after both complete
+```
+
 ::: tip Using NestJS?
 [nest-mikroorm-seeder](/nest-mikroorm/) wraps `runSeeders` in a `SeederModule` that runs your seeders automatically on application bootstrap — no seed script needed. It also tracks which seeders have already run so watch-mode restarts don't re-seed.
 :::
