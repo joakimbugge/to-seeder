@@ -6,16 +6,21 @@ Decorator-based entity seeding for TypeORM. Annotate entity properties with `@Se
 
 `typeorm` and `reflect-metadata` are peer dependencies.
 
-```bash
-# npm
+::: code-group
+
+```bash [npm]
 npm install @joakimbugge/typeorm-seeder typeorm reflect-metadata
+```
 
-# yarn
+```bash [yarn]
 yarn add @joakimbugge/typeorm-seeder typeorm reflect-metadata
+```
 
-# pnpm
+```bash [pnpm]
 pnpm add @joakimbugge/typeorm-seeder typeorm reflect-metadata
 ```
+
+:::
 
 Verify these compiler options are enabled in your `tsconfig.json` — TypeORM requires them and they should already be set:
 

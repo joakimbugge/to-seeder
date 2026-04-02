@@ -4,16 +4,21 @@ Decorator-based entity seeding for MikroORM. Annotate entity properties with `@S
 
 ## Installation
 
-```bash
-# npm
+::: code-group
+
+```bash [npm]
 npm install @joakimbugge/mikroorm-seeder @mikro-orm/core
+```
 
-# yarn
+```bash [yarn]
 yarn add @joakimbugge/mikroorm-seeder @mikro-orm/core
+```
 
-# pnpm
+```bash [pnpm]
 pnpm add @joakimbugge/mikroorm-seeder @mikro-orm/core
 ```
+
+:::
 
 ## Metadata providers
 

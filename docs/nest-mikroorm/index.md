@@ -8,9 +8,21 @@ This package handles the NestJS integration. The seeding itself — `@Seed()`, `
 
 ## Installation
 
-```bash
+::: code-group
+
+```bash [npm]
 npm install @joakimbugge/nest-mikroorm-seeder @joakimbugge/mikroorm-seeder
 ```
+
+```bash [yarn]
+yarn add @joakimbugge/nest-mikroorm-seeder @joakimbugge/mikroorm-seeder
+```
+
+```bash [pnpm]
+pnpm add @joakimbugge/nest-mikroorm-seeder @joakimbugge/mikroorm-seeder
+```
+
+:::
 
 The peer dependencies (`@nestjs/common`, `@nestjs/core`, `@mikro-orm/core`, `@mikro-orm/nestjs`, `reflect-metadata`) are required, but if you are adding this to an existing NestJS + MikroORM project they are already present.
 

@@ -8,9 +8,21 @@ This package handles the NestJS integration. The seeding itself — `@Seed()`, `
 
 ## Installation
 
-```bash
+::: code-group
+
+```bash [npm]
 npm install @joakimbugge/nest-typeorm-seeder @joakimbugge/typeorm-seeder
 ```
+
+```bash [yarn]
+yarn add @joakimbugge/nest-typeorm-seeder @joakimbugge/typeorm-seeder
+```
+
+```bash [pnpm]
+pnpm add @joakimbugge/nest-typeorm-seeder @joakimbugge/typeorm-seeder
+```
+
+:::
 
 The peer dependencies (`@nestjs/common`, `@nestjs/core`, `typeorm`, `reflect-metadata`) are required, but if you are adding this to an existing NestJS + TypeORM project they are already present.
 
