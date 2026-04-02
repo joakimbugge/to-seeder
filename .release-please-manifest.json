@@ -1,6 +1,6 @@
 {
-  "packages/typeorm-seeder": "0.8.1",
+  "packages/typeorm-seeder": "0.9.0",
   "packages/nest-typeorm-seeder": "0.7.1",
-  "packages/mikroorm-seeder": "0.2.0",
+  "packages/mikroorm-seeder": "0.3.0",
   "packages/nest-mikroorm-seeder": "0.1.1"
 }
