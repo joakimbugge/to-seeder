@@ -1,5 +1,16 @@
 # @joakimbugge/mikroorm-seeder
 
+## [0.3.0](https://github.com/joakimbugge/seeders/compare/mikroorm-seeder-v0.2.0...mikroorm-seeder-v0.3.0) (2026-04-02)
+
+
+### Features
+
+* add --dry-run flag to seed:run and seed:entities ([4c0ea51](https://github.com/joakimbugge/seeders/commit/4c0ea51159998613427af7589a18beec3baa1c4f))
+* add index to seed factory ([0ad6d39](https://github.com/joakimbugge/seeders/commit/0ad6d3960b52c8fe9978fa658660c3d2d8256227))
+* add seed:list command to CLI ([adfff59](https://github.com/joakimbugge/seeders/commit/adfff596c19985dba4251b885749fdd8f1f97eaa))
+* add seed:untrack cli command ([5145ace](https://github.com/joakimbugge/seeders/commit/5145aced67f3df8c984dc61c5f0c3df956dbdd8e))
+* run non-dependent seeders concurrently ([d3a3d06](https://github.com/joakimbugge/seeders/commit/d3a3d06b75b08b651796f99af4bf5190b4521c86))
+
 ## [0.2.0](https://github.com/joakimbugge/seeders/compare/mikroorm-seeder-v0.1.1...mikroorm-seeder-v0.2.0) (2026-03-30)
 
 
