@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import { printTypeScriptError } from './commands/errors.js';
 import { seedEntitiesCommand } from './commands/seedEntities.js';
 import { seedListCommand } from './commands/seedList.js';
@@ -17,6 +16,14 @@ const args = process.argv.slice(3);
  * - ts-node is not installed in the user's project
  * - The Node.js version does not support `module.register()`
  */
+async function tryLoadReflectMetadata(): Promise<void> {
+  try {
+    await import('reflect-metadata');
+  } catch {
+    // optional peer dependency — consumers using ts-morph don't need it
+  }
+}
+
 async function tryRegisterTypeScript(): Promise<boolean> {
   try {
     const mod: { register?: (spec: string, parentUrl: string) => void } =
@@ -30,6 +37,7 @@ async function tryRegisterTypeScript(): Promise<boolean> {
 }
 
 async function main(): Promise<void> {
+  await tryLoadReflectMetadata();
   const tsRegistered = await tryRegisterTypeScript();
   const hasTsArgs = args.some((a) => !a.startsWith('-') && a.includes('.ts'));
 
