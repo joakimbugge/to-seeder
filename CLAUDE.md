@@ -1,3 +1,29 @@
+# Monorepo structure
+
+Four packages across two ORM families:
+- `@joakimbugge/typeorm-seeder` + `@joakimbugge/nest-typeorm-seeder`
+- `@joakimbugge/mikroorm-seeder` + `@joakimbugge/nest-mikroorm-seeder`
+
+NestJS packages are thin DI wrappers around their core counterparts.
+
+## Commands
+
+```bash
+pnpm build          # Build all packages
+pnpm test           # Run all tests (vitest)
+pnpm typecheck      # Type-check all packages
+pnpm lint:fix       # Lint with oxlint
+pnpm fmt            # Format with oxfmt
+pnpm run dev:watch  # Watch mode for all packages in parallel
+```
+
+## Tooling
+
+- Bundler: `tsdown` (dual ESM/CJS output with `.mjs`/`.cjs` extensions)
+- Linter: `oxlint` — not ESLint
+- Formatter: `oxfmt` — not Prettier
+- Tests: `vitest` with globals enabled (no imports needed for `describe`/`it`/`expect`)
+
 # Versioning and release
 
 Releases are fully automated via [Release Please](https://github.com/googleapis/release-please). There are no changeset files — do not create them.
