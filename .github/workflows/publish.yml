@@ -1,0 +1,55 @@
+name: Publish packages (manual backfill)
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Space-separated package tags to publish (e.g. @joakimbugge/typeorm-seeder@0.9.0)'
+        required: true
+      dist-tag:
+        description: 'npm dist-tag (use "backfill" for older versions, "latest" for newest)'
+        required: true
+        default: latest
+
+permissions:
+  contents: read
+
+jobs:
+  publish-backfill:
+    name: Publish packages from git tags
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository with full history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Set up Node.js with npm registry
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish packages from tags
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for tag in ${{ inputs.tags }}; do
+            if echo "$tag" | grep -q '^@'; then
+              pkg=$(echo "$tag" | sed 's/@joakimbugge\///' | sed 's/@[0-9].*//')
+            else
+              pkg=$(echo "$tag" | sed 's/-v[0-9].*//')
+            fi
+            path="packages/$pkg"
+            git checkout "$tag" -- "$path"
+            pnpm --filter "./$path" run build
+            cd "$path" && npm publish --access public --tag ${{ inputs.dist-tag }} && cd -
+          done

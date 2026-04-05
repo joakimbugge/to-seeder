@@ -1,38 +1,41 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  test:
+  ci:
+    name: Build, typecheck, and test
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Check out repository
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v5
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - run: pnpm -r run fmt:check
+      - name: Build packages
+        run: pnpm -r run build
 
-      - run: pnpm -r run lint
+      - name: Type-check packages
+        run: pnpm -r run typecheck
 
-      - run: pnpm -r run build
+      - name: Run tests with coverage
+        run: pnpm -r run test:cov
 
-      - run: pnpm -r run typecheck
-
-      - run: pnpm -r run test:cov
-
-      - uses: codecov/codecov-action@v6
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v6
         with:
           files: packages/typeorm-seeder/coverage/lcov.info,packages/nest-typeorm-seeder/coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}

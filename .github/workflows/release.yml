@@ -1,33 +1,62 @@
 name: Release
 
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      tags:
-        description: 'Space-separated package tags to publish (e.g. @joakimbugge/typeorm-seeder@0.9.0)'
-        required: true
-      dist-tag:
-        description: 'npm dist-tag (use "backfill" for older versions, "latest" for newest)'
-        required: true
-        default: latest
 
 permissions:
   contents: write
   pull-requests: write
+  pages: write
+  id-token: write
 
 jobs:
+  ci:
+    name: Build, typecheck, and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm -r run build
+
+      - name: Type-check packages
+        run: pnpm -r run typecheck
+
+      - name: Run tests with coverage
+        run: pnpm -r run test:cov
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v6
+        with:
+          files: packages/typeorm-seeder/coverage/lcov.info,packages/nest-typeorm-seeder/coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   release-please:
-    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    name: Create or update release PR
+    needs: ci
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       paths_released: ${{ steps.release.outputs.paths_released }}
+
     steps:
-      - uses: googleapis/release-please-action@v4
+      - name: Run Release Please
+        uses: googleapis/release-please-action@v4
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -35,23 +64,30 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   publish:
+    name: Publish released packages to npm
     needs: release-please
     if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v6
+      - name: Check out repository
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v5
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v6
+      - name: Set up Node.js with npm registry
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - run: pnpm -r run build
+      - name: Build packages
+        run: pnpm -r run build
 
       - name: Publish released packages
         run: |
@@ -61,79 +97,42 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  publish-backfill:
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - uses: pnpm/action-setup@v5
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Publish packages from tags
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          for tag in ${{ inputs.tags }}; do
-            if echo "$tag" | grep -q '^@'; then
-              pkg=$(echo "$tag" | sed 's/@joakimbugge\///' | sed 's/@[0-9].*//')
-            else
-              pkg=$(echo "$tag" | sed 's/-v[0-9].*//')
-            fi
-            path="packages/$pkg"
-            git checkout "$tag" -- "$path"
-            pnpm --filter "./$path" run build
-            cd "$path" && npm publish --access public --tag ${{ inputs.dist-tag }} && cd -
-          done
-
   docs-build:
+    name: Build documentation site
     needs: publish
-    if: needs.publish.result == 'success'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
 
     steps:
-      - uses: actions/checkout@v6
+      - name: Check out repository
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v5
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v5
 
-      - uses: actions/setup-node@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - run: pnpm run docs:build
+      - name: Build documentation
+        run: pnpm run docs:build
 
-      - uses: actions/configure-pages@v6
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v4
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v4
         with:
           path: docs/.vitepress/dist
 
   docs-deploy:
+    name: Deploy documentation to GitHub Pages
     needs: docs-build
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     concurrency:
       group: pages
       cancel-in-progress: false
