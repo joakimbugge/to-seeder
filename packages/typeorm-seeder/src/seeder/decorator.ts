@@ -23,10 +23,11 @@ export interface SeederOptions {
 }
 
 /**
- * Marks a class as a seeder and registers its dependency metadata.
- *
- * Classes decorated with `@Seeder` can be passed to {@link runSeeders}, which resolves
- * all transitive dependencies, sorts them topologically, and executes them in order.
+ * Marks a class as a seeder with no explicit dependency configuration.
+ */
+export function Seeder(): ClassDecorator;
+/**
+ * Marks a class as a seeder and registers dependency metadata.
  *
  * @example
  * @Seeder({ dependencies: [UserSeeder] })
@@ -35,6 +36,11 @@ export interface SeederOptions {
  *     await seed(Post).saveMany(50, ctx)
  *   }
  * }
+ */
+export function Seeder(options: SeederOptions): ClassDecorator;
+/**
+ * Shared implementation for both overloads.
+ * Normalizes missing options to an empty dependency list.
  */
 export function Seeder(options: SeederOptions = {}): ClassDecorator {
   return (target) => {

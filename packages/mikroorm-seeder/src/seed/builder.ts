@@ -1,7 +1,10 @@
-import type { CreateOptions } from './creator.js';
-import { create, createMany } from './creator.js';
-import type { SaveManyOptions, SaveOptions } from './persist.js';
-import { save, saveMany } from './persist.js';
+import type { CreateOptions } from './creators/create.js';
+import { create } from './creators/create.js';
+import { createMany } from './creators/createMany.js';
+import type { SaveManyOptions } from './persist/saveMany.js';
+import type { SaveOptions } from './persist/save.js';
+import { save } from './persist/save.js';
+import { saveMany } from './persist/saveMany.js';
 import type {
   EntityConstructor,
   EntityInstance,
@@ -10,7 +13,7 @@ import type {
   SeedContext,
 } from './registry.js';
 
-export type { CreateOptions } from './creator.js';
+export type { CreateOptions } from './creators/create.js';
 
 /** Seed builder for a single entity class. Returned by {@link seed} when passed one class. */
 export interface SingleSeed<T extends EntityInstance> {
@@ -41,10 +44,7 @@ export interface MultiSeed<T extends readonly EntityConstructor[]> {
 }
 
 /**
- * Entry point for creating and persisting seed data.
- *
- * Pass a single entity class to get a {@link SingleSeed} builder, or an array of classes
- * to get a {@link MultiSeed} builder that operates on all of them at once.
+ * Returns a {@link SingleSeed} builder for the given entity class.
  *
  * @example
  * // Create one Director in memory (no DB)
@@ -57,13 +57,21 @@ export interface MultiSeed<T extends readonly EntityConstructor[]> {
  * @example
  * // Persist 10 Directors
  * const directors = await seed(Director).saveMany(10, { em })
+ */
+export function seed<T extends EntityInstance>(EntityClass: EntityConstructor<T>): SingleSeed<T>;
+/**
+ * Returns a {@link MultiSeed} builder for the given entity classes.
+ * Relation seeding is disabled by default; pass `relations: true` in the context to enable it.
  *
  * @example
  * // Create multiple entity classes at once (relations disabled by default)
  * const [user, post] = await seed([User, Post]).create()
  */
-export function seed<T extends EntityInstance>(EntityClass: EntityConstructor<T>): SingleSeed<T>;
 export function seed<T extends readonly EntityConstructor[]>(EntityClasses: [...T]): MultiSeed<T>;
+/**
+ * Shared implementation for both overloads.
+ * Dispatches on `Array.isArray(classOrClasses)` to return the appropriate builder type.
+ */
 export function seed<T extends EntityInstance>(
   classOrClasses: EntityConstructor<T> | readonly EntityConstructor[],
 ): SingleSeed<T> | MultiSeed<readonly EntityConstructor[]> {

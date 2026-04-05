@@ -13,7 +13,7 @@ import {
 import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy';
 import { MikroORM } from '@mikro-orm/core';
 import { SqliteDriver } from '@mikro-orm/sqlite';
-import { Seed, create, createMany } from '../../src';
+import { Seed, create } from '../../../src';
 
 // ---------------------------------------------------------------------------
 // Scalar seeding
@@ -96,16 +96,6 @@ describe('scalar seeding', () => {
     expect(typeof post.title).toBe('string');
     expect(typeof post.body).toBe('string');
     expect(typeof post.published).toBe('boolean');
-  });
-
-  it('seeds multiple entities via createMany', async () => {
-    const em = orm.em.fork();
-    const users = await createMany(User, { count: 3 });
-    em.persist(users);
-    await em.flush();
-
-    expect(users).toHaveLength(3);
-    expect(new Set(users.map((u) => u.id)).size).toBe(3);
   });
 
   it('persisted values survive a fresh query', async () => {
@@ -211,16 +201,6 @@ describe('embedded types', () => {
     expect(fetched.address.city).toBe(customer.address.city);
     expect(fetched.address.country).toBe(customer.address.country);
   });
-
-  it('each seeded instance gets an independently generated address', async () => {
-    const em = orm.em.fork();
-    const [a, b] = await createMany(Customer, { count: 2 });
-    em.persist([a, b]);
-    await em.flush();
-
-    expect(a.id).not.toBe(b.id);
-    expect(a.address).not.toBe(b.address);
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -315,101 +295,6 @@ describe('inheritance', () => {
 
     expect((car as unknown as Truck).payloadTons).toBeUndefined();
     expect((truck as unknown as Car).doors).toBeUndefined();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Array form — create / createMany
-// ---------------------------------------------------------------------------
-
-@Entity()
-class Publisher {
-  @PrimaryKey()
-  id!: number;
-
-  @Seed(() => faker.company.name())
-  @Property()
-  name!: string;
-}
-
-@Entity()
-class Writer {
-  @PrimaryKey()
-  id!: number;
-
-  @Seed(() => faker.person.fullName())
-  @Property()
-  name!: string;
-
-  @Seed({ count: 2 })
-  @OneToMany(() => Novel, (n) => n.writer)
-  novels!: Novel[];
-}
-
-@Entity()
-class Novel {
-  @PrimaryKey()
-  id!: number;
-
-  @Seed(() => faker.lorem.words(3))
-  @Property()
-  title!: string;
-
-  @Seed()
-  @ManyToOne(() => Writer)
-  writer!: Writer;
-}
-
-describe('array form — create / createMany', () => {
-  describe('create', () => {
-    it('returns a tuple of instances matching the input array', async () => {
-      const [writer, publisher] = await create([Writer, Publisher]);
-
-      expect(writer).toBeInstanceOf(Writer);
-      expect(publisher).toBeInstanceOf(Publisher);
-    });
-
-    it('seeds scalar properties on each entity', async () => {
-      const [writer, publisher] = await create([Writer, Publisher]);
-
-      expect(typeof writer.name).toBe('string');
-      expect(typeof publisher.name).toBe('string');
-    });
-
-    it('skips relation seeding by default', async () => {
-      const [writer] = await create([Writer, Publisher]);
-
-      expect(writer.novels).toBeUndefined();
-    });
-
-    it('seeds relations when relations: true is passed', async () => {
-      const [writer] = await create([Writer, Publisher], { relations: true });
-
-      expect(writer.novels).toHaveLength(2);
-    });
-  });
-
-  describe('createMany', () => {
-    it('returns arrays of instances per class', async () => {
-      const [writers, publishers] = await createMany([Writer, Publisher], { count: 3 });
-
-      expect(writers).toHaveLength(3);
-      expect(publishers).toHaveLength(3);
-      writers.forEach((w) => expect(w).toBeInstanceOf(Writer));
-      publishers.forEach((p) => expect(p).toBeInstanceOf(Publisher));
-    });
-
-    it('skips relations by default', async () => {
-      const [writers] = await createMany([Writer, Publisher], { count: 2 });
-
-      writers.forEach((w) => expect(w.novels).toBeUndefined());
-    });
-
-    it('seeds relations when relations: true is passed', async () => {
-      const [writers] = await createMany([Writer, Publisher], { count: 2, relations: true });
-
-      writers.forEach((w) => expect(w.novels).toHaveLength(2));
-    });
   });
 });
 
@@ -550,7 +435,7 @@ describe('self-referencing relations', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Sequence index
+// Sequence index — create
 // ---------------------------------------------------------------------------
 
 describe('sequence index', () => {
@@ -564,16 +449,6 @@ describe('sequence index', () => {
     expect(item.value).toBe('item-0');
   });
 
-  it('factory receives sequential indices across a createMany() batch', async () => {
-    class Item {
-      @Seed((_, __, i) => `item-${i}`)
-      value!: string;
-    }
-
-    const items = await createMany(Item, { count: 4 });
-    expect(items.map((item) => item.value)).toEqual(['item-0', 'item-1', 'item-2', 'item-3']);
-  });
-
   it('values factory receives index 0 for a single create()', async () => {
     class Item {
       value!: string;
@@ -581,33 +456,5 @@ describe('sequence index', () => {
 
     const item = await create(Item, { values: { value: (_, __, i) => `item-${i}` } });
     expect(item.value).toBe('item-0');
-  });
-
-  it('values factory receives sequential indices across a createMany() batch', async () => {
-    class Item {
-      value!: string;
-    }
-
-    const items = await createMany(Item, {
-      count: 4,
-      values: { value: (_, __, i) => `item-${i}` },
-    });
-    expect(items.map((item) => item.value)).toEqual(['item-0', 'item-1', 'item-2', 'item-3']);
-  });
-
-  it('each class in a multi-class createMany() gets its own 0-based sequence', async () => {
-    class ItemA {
-      @Seed((_, __, i) => `a-${i}`)
-      value!: string;
-    }
-
-    class ItemB {
-      @Seed((_, __, i) => `b-${i}`)
-      value!: string;
-    }
-
-    const [itemsA, itemsB] = await createMany([ItemA, ItemB], { count: 3 });
-    expect(itemsA.map((item) => item.value)).toEqual(['a-0', 'a-1', 'a-2']);
-    expect(itemsB.map((item) => item.value)).toEqual(['b-0', 'b-1', 'b-2']);
   });
 });
