@@ -73,8 +73,8 @@ importers:
         specifier: ^7.0.0
         version: 7.0.6(@mikro-orm/core@7.0.6(dataloader@2.2.3))(reflect-metadata@0.2.2)
       '@mikro-orm/reflection':
-        specifier: ^7.0.6
-        version: 7.0.6(@mikro-orm/core@7.0.6(dataloader@2.2.3))
+        specifier: ^7.0.8
+        version: 7.0.8(@mikro-orm/core@7.0.6(dataloader@2.2.3))
       '@mikro-orm/sqlite':
         specifier: ^7.0.8
         version: 7.0.8(@mikro-orm/core@7.0.6(dataloader@2.2.3))
@@ -669,11 +669,11 @@ packages:
       '@nestjs/core': ^11.0.5
       reflect-metadata: ^0.1.0 || ^0.2.0
 
-  '@mikro-orm/reflection@7.0.6':
-    resolution: {integrity: sha512-4hk9+LfJzDLEobDRmDQlHCnDurkWyXV4n89cb8MJ56UHs3Jeuv32XCeDujK/FfZWFfIjYPRP3TDWB4ANyW6BoQ==}
+  '@mikro-orm/reflection@7.0.8':
+    resolution: {integrity: sha512-+ZjSkuXPw6nbkGwn2Zl9CJXlUIjo5Nz9w1PGS8XfTqwRl07B9TREkDAS099faeDjBYlZAAi01QQBRjmsNbbW/A==}
     engines: {node: '>= 22.17.0'}
     peerDependencies:
-      '@mikro-orm/core': 7.0.6
+      '@mikro-orm/core': 7.0.8
 
   '@mikro-orm/sql@7.0.8':
     resolution: {integrity: sha512-cQIWSGxdSLhJD9x6BtLiwYgqzOSu3xbSweEyi7xwDUrvBlp+jYvo97rewW58vtOWjsDJ0Gr3G/hkJ4ZB8vXR5w==}
@@ -2209,6 +2209,10 @@ packages:
     resolution: {integrity: sha512-oRjTw/97aTBN0RHbYCdtF1MQfvusSIBQM0IZEgzl6426+8jSC0nF1a/GmnVLpfB9yyr6g6FTqWqiZVbxrtaCIg==}
     engines: {node: 18 || 20 || >=22}
 
+  minimatch@10.2.5:
+    resolution: {integrity: sha512-MULkVLfKGYDFYejP07QOurDLLQpcjk7Fw+7jXS2R2czRQzR56yHRveU5NDJEOviH+hETZKSkIk5c+T23GjFUMg==}
+    engines: {node: 18 || 20 || >=22}
+
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
 
@@ -3242,7 +3246,7 @@ snapshots:
       '@nestjs/core': 11.1.17(@nestjs/common@11.1.17(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2)
       reflect-metadata: 0.2.2
 
-  '@mikro-orm/reflection@7.0.6(@mikro-orm/core@7.0.6(dataloader@2.2.3))':
+  '@mikro-orm/reflection@7.0.8(@mikro-orm/core@7.0.6(dataloader@2.2.3))':
     dependencies:
       '@mikro-orm/core': 7.0.6(dataloader@2.2.3)
       ts-morph: 27.0.2
@@ -3744,7 +3748,7 @@ snapshots:
 
   '@ts-morph/common@0.28.1':
     dependencies:
-      minimatch: 10.2.4
+      minimatch: 10.2.5
       path-browserify: 1.0.1
       tinyglobby: 0.2.15
 
@@ -4447,6 +4451,10 @@ snapshots:
   mimic-response@3.1.0: {}
 
   minimatch@10.2.4:
+    dependencies:
+      brace-expansion: 5.0.5
+
+  minimatch@10.2.5:
     dependencies:
       brace-expansion: 5.0.5
 
