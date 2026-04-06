@@ -55,20 +55,42 @@ export interface MultiSeed<
 }
 
 /**
- * Returns a {@link SingleSeed} builder bound to the given entity class and adapters.
+ * Returns a create-only {@link SingleSeed} builder bound to the given entity class.
+ * Use this overload when you only need in-memory creation and will handle persistence yourself.
+ */
+export function makeSeedBuilder<T extends EntityInstance>(
+  EntityClass: EntityConstructor<T>,
+  metadataAdapter: MetadataAdapter,
+): Pick<SingleSeed<T>, 'create' | 'createMany'>;
+/**
+ * Returns a full {@link SingleSeed} builder bound to the given entity class and adapters.
  * ORM packages call this with their own adapters to produce the `seed()` return value.
  */
 export function makeSeedBuilder<T extends EntityInstance, TContext extends SeedContext>(
   EntityClass: EntityConstructor<T>,
   metadataAdapter: MetadataAdapter,
   persistenceAdapter: PersistenceAdapter<TContext>,
-): SingleSeed<T, TContext> {
-  return {
-    create: (options?) => create(EntityClass, options, metadataAdapter),
-    createMany: (count, options?) =>
+): SingleSeed<T, TContext>;
+export function makeSeedBuilder<T extends EntityInstance, TContext extends SeedContext>(
+  EntityClass: EntityConstructor<T>,
+  metadataAdapter: MetadataAdapter,
+  persistenceAdapter?: PersistenceAdapter<TContext>,
+): Pick<SingleSeed<T>, 'create' | 'createMany'> | SingleSeed<T, TContext> {
+  const base = {
+    create: (options?: CreateOptions<T>) => create(EntityClass, options, metadataAdapter),
+    createMany: (count: number, options?: CreateOptions<T>) =>
       createMany(EntityClass, { count, ...options }, metadataAdapter),
-    save: (options) => save(EntityClass, options, metadataAdapter, persistenceAdapter),
-    saveMany: (count, options) =>
+  };
+
+  if (!persistenceAdapter) {
+    return base;
+  }
+
+  return {
+    ...base,
+    save: (options: TContext & { values?: SeedValues<T> }) =>
+      save(EntityClass, options, metadataAdapter, persistenceAdapter),
+    saveMany: (count: number, options: TContext & { values?: SeedValues<T> }) =>
       saveMany(
         EntityClass,
         { count, ...options } as TContext & { count: number; values?: SeedValues<T> },
@@ -79,7 +101,15 @@ export function makeSeedBuilder<T extends EntityInstance, TContext extends SeedC
 }
 
 /**
- * Returns a {@link MultiSeed} builder bound to the given entity classes and adapters.
+ * Returns a create-only {@link MultiSeed} builder bound to the given entity classes.
+ * Use this overload when you only need in-memory creation and will handle persistence yourself.
+ */
+export function makeMultiSeedBuilder<T extends readonly EntityConstructor[]>(
+  classes: [...T],
+  metadataAdapter: MetadataAdapter,
+): Pick<MultiSeed<T>, 'create' | 'createMany'>;
+/**
+ * Returns a full {@link MultiSeed} builder bound to the given entity classes and adapters.
  * ORM packages call this with their own adapters to produce the multi-class `seed()` return value.
  */
 export function makeMultiSeedBuilder<
@@ -89,16 +119,33 @@ export function makeMultiSeedBuilder<
   classes: [...T],
   metadataAdapter: MetadataAdapter,
   persistenceAdapter: PersistenceAdapter<TContext>,
-): MultiSeed<T, TContext> {
-  return {
-    create: (context?) => create(classes, context, metadataAdapter) as Promise<MapToInstances<T>>,
-    createMany: (count, context?) =>
+): MultiSeed<T, TContext>;
+export function makeMultiSeedBuilder<
+  T extends readonly EntityConstructor[],
+  TContext extends SeedContext,
+>(
+  classes: [...T],
+  metadataAdapter: MetadataAdapter,
+  persistenceAdapter?: PersistenceAdapter<TContext>,
+): Pick<MultiSeed<T>, 'create' | 'createMany'> | MultiSeed<T, TContext> {
+  const base = {
+    create: (context?: SeedContext) =>
+      create(classes, context, metadataAdapter) as Promise<MapToInstances<T>>,
+    createMany: (count: number, context?: SeedContext) =>
       createMany(classes, { count, ...context } as CreateManyOptions, metadataAdapter) as Promise<
         MapToInstanceArrays<T>
       >,
-    save: (options) =>
+  };
+
+  if (!persistenceAdapter) {
+    return base;
+  }
+
+  return {
+    ...base,
+    save: (options: TContext) =>
       save(classes, options, metadataAdapter, persistenceAdapter) as Promise<MapToInstances<T>>,
-    saveMany: (count, options) =>
+    saveMany: (count: number, options: TContext) =>
       saveMany(
         classes,
         { count, ...options } as TContext & { count: number },

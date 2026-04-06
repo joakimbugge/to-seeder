@@ -94,10 +94,7 @@ The `hierarchy` array passed to both adapter methods is ordered from the most-de
 Pass your adapters to `makeSeedBuilder` to produce a builder with the same `create` / `createMany` / `save` / `saveMany` API as the ORM packages:
 
 ```ts
-import {
-  makeSeedBuilder,
-  makeMultiSeedBuilder,
-} from '@joakimbugge/seeder'
+import { makeSeedBuilder } from '@joakimbugge/seeder'
 import type { EntityConstructor, EntityInstance } from '@joakimbugge/seeder'
 
 export function seed<T extends EntityInstance>(EntityClass: EntityConstructor<T>) {
@@ -106,6 +103,28 @@ export function seed<T extends EntityInstance>(EntityClass: EntityConstructor<T>
 ```
 
 The `@Seed` decorator is re-exported from this package and works the same way as in the ORM packages.
+
+## Create-only mode
+
+`persistenceAdapter` is optional. When omitted, the builder only exposes `create` and `createMany` — `save` and `saveMany` are absent from the type entirely. This is useful when you want in-memory entity creation without any database involvement, or when you prefer to handle persistence yourself after receiving the instances.
+
+```ts
+import { makeSeedBuilder, Seed } from '@joakimbugge/seeder'
+import { faker } from '@faker-js/faker'
+
+class User {
+  @Seed(() => faker.person.fullName())
+  name!: string
+}
+
+const builder = makeSeedBuilder(User, myMetadataAdapter)
+// builder: Pick<SingleSeed<User>, 'create' | 'createMany'>
+
+const users = await builder.createMany(10)
+// Fully seeded User instances — no database call made
+```
+
+The same applies to `makeMultiSeedBuilder`.
 
 ## API reference
 

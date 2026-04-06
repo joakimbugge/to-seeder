@@ -6,7 +6,7 @@ import type {
   MapToInstanceArrays,
   SeedContext,
 } from '../registry.js';
-import { saveBatch } from './saveBatch.js';
+import { saveBatch } from '../utils/saveBatch.js';
 
 /**
  * Creates and persists `count` instances for one entity class.

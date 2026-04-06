@@ -6,7 +6,7 @@ import type {
   MapToInstances,
   SeedContext,
 } from '../registry.js';
-import { saveBatch } from './saveBatch.js';
+import { saveBatch } from '../utils/saveBatch.js';
 
 /**
  * Creates and persists one entity instance for a single class.
