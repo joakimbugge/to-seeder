@@ -1,8 +1,6 @@
 export { Seed } from './seed/decorator.js';
 export { seed } from './seed/builder.js';
-export { loadEntities } from './utils/loadEntities.js';
 export { runSeeders } from './seeder/runner.js';
-export { loadSeeders } from './utils/loadSeeders.js';
 export type { SeederCtor, RunSeedersOptions } from './seeder/runner.js';
 export type {
   EntityInstance,

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { describe, expect, it } from 'vitest';
 import { FixtureAuthor } from '../fixtures/entities/FixtureAuthor.js';
 import { FixtureBook } from '../fixtures/entities/FixtureBook.js';
-import { loadEntities } from '../../src/utils/loadEntities.js';
+import { loadEntities } from '@joakimbugge/seeder';
 
 const fixturesDir = path
   .resolve(fileURLToPath(import.meta.url), '../../fixtures/entities')

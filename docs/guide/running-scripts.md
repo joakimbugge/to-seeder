@@ -32,10 +32,15 @@ npx ts-node src/seed.ts
 
 ## Loading entities from paths
 
+:::info
+`loadEntities` and `loadSeeders` are ORM-agnostic and live in `@joakimbugge/seeder`, not the TypeORM package. Import them from there.
+:::
+
 `loadEntities` resolves a mixed array of entity constructors and glob patterns into a flat array of constructors — the same format TypeORM accepts in its `entities` DataSource option:
 
 ```ts
-import { loadEntities, seed } from '@joakimbugge/typeorm-seeder'
+import { loadEntities } from '@joakimbugge/seeder'
+import { seed } from '@joakimbugge/typeorm-seeder'
 
 const classes = await loadEntities([User, 'dist/entities/**/*.js'])
 await seed(classes).saveMany(10, { dataSource })
@@ -54,7 +59,8 @@ const classes = await loadEntities(['src/entities/**/*.ts'])
 `loadSeeders` works the same way as `loadEntities` but collects only constructors decorated with `@Seeder`. Non-seeder exports in matched files are ignored.
 
 ```ts
-import { loadSeeders, runSeeders } from '@joakimbugge/typeorm-seeder'
+import { loadSeeders } from '@joakimbugge/seeder'
+import { runSeeders } from '@joakimbugge/typeorm-seeder'
 
 const seeders = await loadSeeders(['dist/seeders/**/*.js'])
 await runSeeders(seeders, { dataSource })

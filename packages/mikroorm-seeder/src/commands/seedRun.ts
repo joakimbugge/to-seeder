@@ -1,5 +1,6 @@
 import { parseArgs } from 'node:util';
-import { loadSeeders, runSeeders } from '../index.js';
+import { runSeeders } from '../index.js';
+import { loadSeeders } from '@joakimbugge/seeder';
 import { loadOrm } from '../utils/loadOrm.js';
 import { isTypeScriptImportError, printTypeScriptError } from './errors.js';
 

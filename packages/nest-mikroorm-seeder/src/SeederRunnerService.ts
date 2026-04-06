@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { loadSeeders, runSeeders } from '@joakimbugge/mikroorm-seeder';
+import { runSeeders } from '@joakimbugge/mikroorm-seeder';
+import { loadSeeders } from '@joakimbugge/seeder';
 import { type EntityManager, MikroORM } from '@mikro-orm/core';
 import type { SeederModuleOptions } from './SeederModule.js';
 import { SeederRegistry } from './SeederRegistry.js';

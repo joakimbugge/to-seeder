@@ -1,11 +1,10 @@
 import { importGlob } from './importGlob.js';
 import { collectConstructors } from './collectConstructors.js';
-import type { EntityConstructor, EntityInstance } from '@joakimbugge/seeder';
+import type { EntityConstructor, EntityInstance } from '../seed/registry.js';
 
 /**
  * Resolves a mixed array of entity constructors and glob patterns into a flat
- * array of entity constructors — the same format accepted by TypeORM's `entities`
- * DataSource option.
+ * array of entity constructors.
  *
  * Constructor entries are passed through as-is. String entries are treated as glob
  * patterns, expanded to file paths, and each matched file is dynamically imported.
@@ -13,7 +12,6 @@ import type { EntityConstructor, EntityInstance } from '@joakimbugge/seeder';
  *
  * @example
  * const classes = await loadEntities([User, 'src/entities/*.js'])
- * const users = await seed(classes).saveMany(10, { dataSource })
  */
 export async function loadEntities(
   sources: (EntityConstructor | string)[],

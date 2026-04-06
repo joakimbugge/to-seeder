@@ -34,3 +34,7 @@ export { ConsoleLogger } from './seeder/logger.js';
 export type { SeederLogger } from './seeder/logger.js';
 export { runSeeders } from './seeder/runner.js';
 export type { SeederCtor, RunSeedersOptions } from './seeder/runner.js';
+export { importGlob } from './utils/importGlob.js';
+export { collectConstructors } from './utils/collectConstructors.js';
+export { loadEntities } from './utils/loadEntities.js';
+export { loadSeeders } from './utils/loadSeeders.js';

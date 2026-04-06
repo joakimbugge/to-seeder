@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, type OnApplicationBootstrap } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { loadSeeders, runSeeders } from '@joakimbugge/typeorm-seeder';
+import { runSeeders } from '@joakimbugge/typeorm-seeder';
+import { loadSeeders } from '@joakimbugge/seeder';
 import { DataSource } from 'typeorm';
 import type { SeederModuleOptions } from './SeederModule.js';
 import { SeederRegistry } from './SeederRegistry.js';

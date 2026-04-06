@@ -1,6 +1,6 @@
 import { importGlob } from './importGlob.js';
 import { collectConstructors } from './collectConstructors.js';
-import { getSeederMeta } from '@joakimbugge/seeder';
+import { getSeederMeta } from '../seeder/registry.js';
 import type { SeederCtor } from '../seeder/runner.js';
 
 /**
@@ -13,11 +13,11 @@ import type { SeederCtor } from '../seeder/runner.js';
  *
  * @example
  * const seeders = await loadSeeders(['dist/seeders/**\/*.js'])
- * await runSeeders(seeders, { em })
+ * await runSeeders(seeders, options)
  *
  * @example
  * const seeders = await loadSeeders([UserSeeder, 'dist/seeders/Post*.js'])
- * await runSeeders(seeders, { em })
+ * await runSeeders(seeders, options)
  */
 export async function loadSeeders(sources: (SeederCtor | string)[]): Promise<SeederCtor[]> {
   const classes: SeederCtor[] = [];

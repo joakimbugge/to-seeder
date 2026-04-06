@@ -1,6 +1,6 @@
 import { inspect, parseArgs } from 'node:util';
-import { loadEntities, seed } from '../index.js';
-import { getSeeds } from '@joakimbugge/seeder';
+import { seed } from '../index.js';
+import { getSeeds, loadEntities } from '@joakimbugge/seeder';
 import { loadDataSource } from '../utils/loadDataSource.js';
 import { isTypeScriptImportError, printTypeScriptError } from './errors.js';
 

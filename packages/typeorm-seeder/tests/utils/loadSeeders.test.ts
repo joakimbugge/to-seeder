@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { describe, expect, it } from 'vitest';
 import { FixtureAuthorSeeder } from '../fixtures/seeders/FixtureAuthorSeeder.js';
 import { FixtureBookSeeder } from '../fixtures/seeders/FixtureBookSeeder.js';
-import { loadSeeders } from '../../src/index.js';
+import { loadSeeders } from '@joakimbugge/seeder';
 
 const fixturesDir = path
   .resolve(fileURLToPath(import.meta.url), '../../fixtures/seeders')

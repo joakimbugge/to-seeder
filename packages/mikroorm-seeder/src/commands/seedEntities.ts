@@ -1,7 +1,7 @@
 import { inspect, parseArgs } from 'node:util';
 import { seed } from '../index.js';
 import { getSeeds } from '@joakimbugge/seeder';
-import { loadEntities } from '../utils/loadEntities.js';
+import { loadEntities } from '@joakimbugge/seeder';
 import { loadOrm } from '../utils/loadOrm.js';
 import { isTypeScriptImportError, printTypeScriptError } from './errors.js';
 

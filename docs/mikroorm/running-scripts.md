@@ -38,10 +38,15 @@ npx tsx src/seed.ts
 
 ## Loading seeders from paths
 
+:::info
+`loadSeeders` is ORM-agnostic and lives in `@joakimbugge/seeder`, not the MikroORM package. Import it from there.
+:::
+
 `loadSeeders` resolves a mixed array of seeder constructors and glob patterns into a flat array of constructors — only classes decorated with `@Seeder` are collected:
 
 ```ts
-import { loadSeeders, runSeeders } from '@joakimbugge/mikroorm-seeder'
+import { loadSeeders } from '@joakimbugge/seeder'
+import { runSeeders } from '@joakimbugge/mikroorm-seeder'
 
 const seeders = await loadSeeders(['dist/seeders/**/*.js'])
 await runSeeders(seeders, { em })

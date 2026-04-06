@@ -60,7 +60,8 @@
     }
   },
   "dependencies": {
-    "dependency-graph": "^1.0.0"
+    "dependency-graph": "^1.0.0",
+    "tinyglobby": "^0.2.15"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

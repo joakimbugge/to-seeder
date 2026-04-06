@@ -141,6 +141,9 @@ importers:
       dependency-graph:
         specifier: ^1.0.0
         version: 1.0.0
+      tinyglobby:
+        specifier: ^0.2.15
+        version: 0.2.15
     devDependencies:
       '@types/node':
         specifier: ^22.0.0
