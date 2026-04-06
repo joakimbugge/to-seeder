@@ -3,7 +3,7 @@ import { getSeederMeta } from './registry.js';
 import { ConsoleLogger } from './logger.js';
 import type { SeederLogger } from './logger.js';
 import type { SeederInterface } from './decorator.js';
-import type { SeedContext } from '../seed/registry.js';
+import type { SeedContext } from '../seed/context.js';
 
 export type SeederCtor = new () => SeederInterface;
 

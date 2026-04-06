@@ -12,7 +12,7 @@ import {
 import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy';
 import { MikroORM } from '@mikro-orm/core';
 import { SqliteDriver } from '@mikro-orm/sqlite';
-import { Seed, save, saveMany } from '../../src';
+import { Seed, seed } from '../../src';
 
 @Entity()
 class Author {
@@ -96,7 +96,7 @@ describe('bookstore', () => {
 
   it('seeds and persists an author with their books', async () => {
     const em = orm.em.fork();
-    const saved = await save(Author, { em });
+    const saved = await seed(Author).save({ em });
 
     const fetched = await orm.em
       .fork()
@@ -112,7 +112,7 @@ describe('bookstore', () => {
 
   it('seeds and persists a customer with a favorite author and purchased books', async () => {
     const em = orm.em.fork();
-    const saved = await save(Customer, { em });
+    const saved = await seed(Customer).save({ em });
 
     const fetched = await orm.em.fork().findOneOrFail(
       Customer,
@@ -135,7 +135,7 @@ describe('bookstore', () => {
 
   it("the favorite author's own books are also persisted", async () => {
     const em = orm.em.fork();
-    const saved = await save(Customer, { em });
+    const saved = await seed(Customer).save({ em });
 
     const fetched = await orm.em
       .fork()
@@ -152,7 +152,7 @@ describe('bookstore', () => {
 
   it('purchased books each have their own independently seeded author', async () => {
     const em = orm.em.fork();
-    const saved = await save(Customer, { em });
+    const saved = await seed(Customer).save({ em });
 
     const fetched = await orm.em.fork().findOneOrFail(
       Customer,
@@ -168,7 +168,7 @@ describe('bookstore', () => {
 
   it('seeds the entire application graph from a single root entity', async () => {
     const em = orm.em.fork();
-    const saved = await save(Bookstore, { em });
+    const saved = await seed(Bookstore).save({ em });
 
     const bookstore = await orm.em.fork().findOneOrFail(
       Bookstore,
@@ -191,7 +191,7 @@ describe('bookstore', () => {
 
   it('seeds and persists multiple customers independently', async () => {
     const em = orm.em.fork();
-    const saved = await saveMany(Customer, { count: 3, em });
+    const saved = await seed(Customer).saveMany(3, { em });
 
     expect(saved).toHaveLength(3);
     expect(new Set(saved.map((c) => c.id)).size).toBe(3);

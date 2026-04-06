@@ -69,6 +69,7 @@
     "typeorm": "1.0.0-nightly.20260405"
   },
   "dependencies": {
+    "@joakimbugge/seeder": "workspace:^",
     "dependency-graph": "^1.0.0",
     "tinyglobby": "^0.2.15"
   }

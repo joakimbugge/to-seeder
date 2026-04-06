@@ -12,6 +12,7 @@
     { "type": "chore",    "section": "Miscellaneous",  "hidden": false }
   ],
   "packages": {
+    "packages/seeder": {},
     "packages/typeorm-seeder": {},
     "packages/nest-typeorm-seeder": {},
     "packages/mikroorm-seeder": {},

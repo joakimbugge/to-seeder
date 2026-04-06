@@ -1,7 +1,16 @@
 import 'reflect-metadata';
 import { faker } from '@faker-js/faker';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Entity, ManyToOne, OneToMany, PrimaryKey, Property } from '@mikro-orm/decorators/legacy';
+import {
+  Embeddable,
+  Embedded,
+  Entity,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/decorators/legacy';
 import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy';
 import { MikroORM } from '@mikro-orm/core';
 import { SqliteDriver } from '@mikro-orm/sqlite';
@@ -236,5 +245,249 @@ describe('seed() builder', () => {
       directors.forEach((d) => expect(d.id).toBeGreaterThan(0));
       studios.forEach((s) => expect(s.id).toBeGreaterThan(0));
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Embedded types
+// ---------------------------------------------------------------------------
+
+@Embeddable()
+class EmbeddedAddress {
+  @Seed(() => faker.location.streetAddress())
+  @Property()
+  street!: string;
+
+  @Seed(() => faker.location.city())
+  @Property()
+  city!: string;
+}
+
+@Entity()
+class CustomerWithAddress {
+  @PrimaryKey()
+  id!: number;
+
+  @Seed(() => faker.company.name())
+  @Property()
+  name!: string;
+
+  @Embedded(() => EmbeddedAddress)
+  address!: EmbeddedAddress;
+}
+
+describe('embedded types', () => {
+  let orm: MikroORM;
+
+  beforeAll(async () => {
+    orm = await MikroORM.init({
+      metadataProvider: ReflectMetadataProvider,
+      entities: [CustomerWithAddress],
+      dbName: ':memory:',
+      driver: SqliteDriver,
+    });
+    await orm.schema.create();
+  });
+
+  afterAll(async () => {
+    await orm.close();
+  });
+
+  it('create() auto-seeds embedded class detected via MikroORM metadata', async () => {
+    const customer = await seed(CustomerWithAddress).create();
+
+    expect(customer.address).toBeDefined();
+    expect(typeof customer.address.street).toBe('string');
+    expect(typeof customer.address.city).toBe('string');
+  });
+
+  it('save() persists embedded columns to the database', async () => {
+    const em = orm.em.fork();
+    const saved = await seed(CustomerWithAddress).save({ em });
+    const fetched = await orm.em.fork().findOneOrFail(CustomerWithAddress, { id: saved.id });
+
+    expect(fetched.address.street).toBe(saved.address.street);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Inheritance
+// ---------------------------------------------------------------------------
+
+@Entity({
+  discriminatorColumn: 'type',
+  discriminatorMap: { car: 'InhCar' },
+})
+class InhVehicle {
+  @PrimaryKey()
+  id!: number;
+
+  @Seed(() => faker.vehicle.manufacturer())
+  @Property()
+  make!: string;
+}
+
+@Entity({ discriminatorValue: 'car' })
+class InhCar extends InhVehicle {
+  @Seed(() => faker.number.int({ min: 2, max: 6 }))
+  @Property({ nullable: true })
+  doors!: number;
+}
+
+describe('inheritance', () => {
+  let orm: MikroORM;
+
+  beforeAll(async () => {
+    orm = await MikroORM.init({
+      metadataProvider: ReflectMetadataProvider,
+      entities: [InhVehicle, InhCar],
+      dbName: ':memory:',
+      driver: SqliteDriver,
+    });
+    await orm.schema.create();
+  });
+
+  afterAll(async () => {
+    await orm.close();
+  });
+
+  it('create() seeds parent and child @Seed properties', async () => {
+    const car = await seed(InhCar).create({ relations: false });
+
+    expect(typeof car.make).toBe('string');
+    expect(typeof car.doors).toBe('number');
+  });
+
+  it('save() persists child entity including inherited columns', async () => {
+    const em = orm.em.fork();
+    const saved = await seed(InhCar).save({ em });
+
+    expect(saved.id).toBeGreaterThan(0);
+    expect(typeof saved.make).toBe('string');
+    expect(typeof saved.doors).toBe('number');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Context pass-through — em available in factories
+// ---------------------------------------------------------------------------
+
+describe('context pass-through', () => {
+  it('save() makes em available in factory callbacks', async () => {
+    let receivedEm: MikroORM['em'] | undefined;
+
+    @Entity()
+    class Probe {
+      @PrimaryKey()
+      id!: number;
+
+      @Seed(({ em: e }) => {
+        receivedEm = e as MikroORM['em'];
+        return faker.lorem.word();
+      })
+      @Property()
+      value!: string;
+    }
+
+    const orm2 = await MikroORM.init({
+      metadataProvider: ReflectMetadataProvider,
+      entities: [Probe],
+      dbName: ':memory:',
+      driver: SqliteDriver,
+    });
+    await orm2.schema.create();
+
+    try {
+      const em = orm2.em.fork();
+      await seed(Probe).save({ em });
+      expect(receivedEm).toBe(em);
+    } finally {
+      await orm2.close();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Many-to-many
+// ---------------------------------------------------------------------------
+
+@Entity()
+class Label {
+  @PrimaryKey()
+  id!: number;
+
+  @Seed(() => faker.lorem.word())
+  @Property()
+  name!: string;
+}
+
+@Entity()
+class BlogPost {
+  @PrimaryKey()
+  id!: number;
+
+  @Seed(() => faker.lorem.sentence())
+  @Property()
+  title!: string;
+
+  @Seed({ count: 2 })
+  @ManyToMany(() => Label)
+  labels!: Label[];
+}
+
+describe('many-to-many', () => {
+  let orm: MikroORM;
+
+  beforeAll(async () => {
+    orm = await MikroORM.init({
+      metadataProvider: ReflectMetadataProvider,
+      entities: [Label, BlogPost],
+      dbName: ':memory:',
+      driver: SqliteDriver,
+    });
+    await orm.schema.create();
+  });
+
+  afterAll(async () => {
+    await orm.close();
+  });
+
+  it('save() persists join table', async () => {
+    const em = orm.em.fork();
+    const saved = await seed(BlogPost).save({ em });
+    const fetched = await orm.em
+      .fork()
+      .findOneOrFail(BlogPost, { id: saved.id }, { populate: ['labels'] });
+
+    expect(fetched.labels).toHaveLength(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// saveMany — edge cases
+// ---------------------------------------------------------------------------
+
+describe('saveMany — edge cases', () => {
+  let orm: MikroORM;
+
+  beforeAll(async () => {
+    orm = await MikroORM.init({
+      metadataProvider: ReflectMetadataProvider,
+      entities: [Studio],
+      dbName: ':memory:',
+      driver: SqliteDriver,
+    });
+    await orm.schema.create();
+  });
+
+  afterAll(async () => {
+    await orm.close();
+  });
+
+  it('returns an empty array when count is 0', async () => {
+    const em = orm.em.fork();
+    const result = await seed(Studio).saveMany(0, { em });
+
+    expect(result).toEqual([]);
   });
 });

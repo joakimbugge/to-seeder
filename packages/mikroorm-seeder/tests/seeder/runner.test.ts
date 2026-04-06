@@ -6,7 +6,7 @@ import { ReflectMetadataProvider } from '@mikro-orm/decorators/legacy';
 import { MikroORM } from '@mikro-orm/core';
 import { SqliteDriver } from '@mikro-orm/sqlite';
 import type { SeedContext } from '../../src';
-import { runSeeders, saveMany, Seed, Seeder } from '../../src';
+import { runSeeders, seed, Seed, Seeder } from '../../src';
 import type { SeederCtor } from '../../src/seeder/runner.js';
 
 // ---------------------------------------------------------------------------
@@ -197,7 +197,7 @@ describe('seeder suites', () => {
       @Seeder()
       class UserSeeder {
         async run(ctx: SeedContext) {
-          await saveMany(SeedUser, { ...ctx, em: ctx.em!, count: 3 });
+          await seed(SeedUser).saveMany(3, { ...ctx, em: ctx.em! });
         }
       }
 

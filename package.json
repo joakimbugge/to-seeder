@@ -9,7 +9,7 @@
     "test": "pnpm -r run test",
     "typecheck": "pnpm -r run typecheck",
     "test:cov": "vitest run --coverage",
-    "docs:typedoc": "(cd docs && typedoc --options typedoc.typeorm-seeder.json && typedoc --options typedoc.nest-typeorm-seeder.json && typedoc --options typedoc.mikroorm-seeder.json && typedoc --options typedoc.nest-mikroorm-seeder.json)",
+    "docs:typedoc": "(cd docs && typedoc --options typedoc.seeder.json && typedoc --options typedoc.typeorm-seeder.json && typedoc --options typedoc.nest-typeorm-seeder.json && typedoc --options typedoc.mikroorm-seeder.json && typedoc --options typedoc.nest-mikroorm-seeder.json)",
     "docs:dev": "pnpm run docs:typedoc && vitepress dev docs",
     "docs:build": "pnpm run docs:typedoc && vitepress build docs",
     "docs:preview": "vitepress preview docs"

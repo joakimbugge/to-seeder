@@ -56,6 +56,9 @@ importers:
 
   packages/mikroorm-seeder:
     dependencies:
+      '@joakimbugge/seeder':
+        specifier: workspace:^
+        version: link:../seeder
       dependency-graph:
         specifier: ^1.0.0
         version: 1.0.0
@@ -133,8 +136,17 @@ importers:
         specifier: 1.0.0-nightly.20260405
         version: 1.0.0-nightly.20260405(better-sqlite3@12.8.0)(ts-node@10.9.2(@swc/core@1.15.21)(@types/node@25.5.0)(typescript@6.0.2))
 
+  packages/seeder:
+    devDependencies:
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
+
   packages/typeorm-seeder:
     dependencies:
+      '@joakimbugge/seeder':
+        specifier: workspace:^
+        version: link:../seeder
       dependency-graph:
         specifier: ^1.0.0
         version: 1.0.0

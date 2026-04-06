@@ -2,13 +2,20 @@ import 'reflect-metadata';
 import { faker } from '@faker-js/faker';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
+  ChildEntity,
   Column,
   DataSource,
   Entity,
   In,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  TableInheritance,
+  Tree,
+  TreeChildren,
+  TreeParent,
   type Relation,
 } from 'typeorm';
 import { Seed, seed } from '../../src';
@@ -251,5 +258,317 @@ describe('seed() builder', () => {
       directors.forEach((d) => expect(d.id).toBeGreaterThan(0));
       studios.forEach((s) => expect(s.id).toBeGreaterThan(0));
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Embedded types
+// ---------------------------------------------------------------------------
+
+class EmbeddedAddress {
+  @Seed(() => faker.location.streetAddress())
+  @Column({ type: 'text' })
+  street!: string;
+
+  @Seed(() => faker.location.city())
+  @Column({ type: 'text' })
+  city!: string;
+}
+
+@Entity()
+class CustomerWithAddress {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Seed(() => faker.company.name())
+  @Column({ type: 'text' })
+  name!: string;
+
+  @Column(() => EmbeddedAddress)
+  address!: EmbeddedAddress;
+}
+
+describe('embedded types', () => {
+  let dataSource: DataSource;
+
+  beforeAll(async () => {
+    dataSource = new DataSource({
+      type: 'better-sqlite3',
+      database: ':memory:',
+      synchronize: true,
+      logging: false,
+      entities: [CustomerWithAddress],
+    });
+    await dataSource.initialize();
+  });
+
+  afterAll(async () => {
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
+  });
+
+  it('create() auto-seeds embedded class detected via TypeORM metadata', async () => {
+    const customer = await seed(CustomerWithAddress).create();
+
+    expect(customer.address).toBeDefined();
+    expect(typeof customer.address.street).toBe('string');
+    expect(typeof customer.address.city).toBe('string');
+  });
+
+  it('save() persists embedded columns to the database', async () => {
+    const saved = await seed(CustomerWithAddress).save({ dataSource });
+    const fetched = await dataSource
+      .getRepository(CustomerWithAddress)
+      .findOneByOrFail({ id: saved.id });
+
+    expect(fetched.address.street).toBe(saved.address.street);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Inheritance
+// ---------------------------------------------------------------------------
+
+@Entity()
+@TableInheritance({ column: { type: 'varchar', name: 'type' } })
+class Vehicle {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Seed(() => faker.vehicle.manufacturer())
+  @Column({ type: 'text' })
+  make!: string;
+}
+
+@ChildEntity()
+class Car extends Vehicle {
+  @Seed(() => faker.number.int({ min: 2, max: 6 }))
+  @Column({ type: 'integer' })
+  doors!: number;
+}
+
+describe('inheritance (TableInheritance)', () => {
+  let dataSource: DataSource;
+
+  beforeAll(async () => {
+    dataSource = new DataSource({
+      type: 'better-sqlite3',
+      database: ':memory:',
+      synchronize: true,
+      logging: false,
+      entities: [Vehicle, Car],
+    });
+    await dataSource.initialize();
+  });
+
+  afterAll(async () => {
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
+  });
+
+  it('create() seeds parent and child @Seed properties', async () => {
+    const car = await seed(Car).create({ relations: false });
+
+    expect(typeof car.make).toBe('string');
+    expect(typeof car.doors).toBe('number');
+  });
+
+  it('save() persists child entity including inherited columns', async () => {
+    const saved = await seed(Car).save({ dataSource });
+
+    expect(saved.id).toBeGreaterThan(0);
+    expect(typeof saved.make).toBe('string');
+    expect(typeof saved.doors).toBe('number');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Context pass-through — dataSource available in factories
+// ---------------------------------------------------------------------------
+
+describe('context pass-through', () => {
+  it('save() makes dataSource available in factory callbacks', async () => {
+    let receivedDataSource: DataSource | undefined;
+
+    @Entity()
+    class Probe {
+      @PrimaryGeneratedColumn()
+      id!: number;
+
+      @Seed(({ dataSource: ds }) => {
+        receivedDataSource = ds;
+        return faker.lorem.word();
+      })
+      @Column({ type: 'text' })
+      value!: string;
+    }
+
+    const ds = new DataSource({
+      type: 'better-sqlite3',
+      database: ':memory:',
+      synchronize: true,
+      logging: false,
+      entities: [Probe],
+    });
+    await ds.initialize();
+
+    try {
+      await seed(Probe).save({ dataSource: ds });
+      expect(receivedDataSource).toBe(ds);
+    } finally {
+      await ds.destroy();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Many-to-many
+// ---------------------------------------------------------------------------
+
+@Entity()
+class Label {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Seed(() => faker.lorem.word())
+  @Column({ type: 'text' })
+  name!: string;
+}
+
+@Entity()
+class BlogPost {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Seed(() => faker.lorem.sentence())
+  @Column({ type: 'text' })
+  title!: string;
+
+  @Seed({ count: 2 })
+  @ManyToMany(() => Label)
+  @JoinTable()
+  labels!: Label[];
+}
+
+describe('many-to-many', () => {
+  let dataSource: DataSource;
+
+  beforeAll(async () => {
+    dataSource = new DataSource({
+      type: 'better-sqlite3',
+      database: ':memory:',
+      synchronize: true,
+      logging: false,
+      entities: [Label, BlogPost],
+    });
+    await dataSource.initialize();
+  });
+
+  afterAll(async () => {
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
+  });
+
+  it('save() persists join table without explicit cascade', async () => {
+    const saved = await seed(BlogPost).save({ dataSource });
+    const fetched = await dataSource
+      .getRepository(BlogPost)
+      .findOneOrFail({ where: { id: saved.id }, relations: { labels: true } });
+
+    expect(fetched.labels).toHaveLength(2);
+    fetched.labels.forEach((l) => expect(l.id).toBeGreaterThan(0));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Tree entities
+// ---------------------------------------------------------------------------
+
+@Entity()
+@Tree('adjacency-list')
+class TreeCategory {
+  @PrimaryGeneratedColumn()
+  id!: number;
+
+  @Seed(() => faker.commerce.department())
+  @Column({ type: 'text' })
+  name!: string;
+
+  @Seed()
+  @TreeParent({ onDelete: 'CASCADE' })
+  parent?: TreeCategory;
+
+  @Seed({ count: 2 })
+  @TreeChildren()
+  children!: TreeCategory[];
+}
+
+describe('tree entity (adjacency-list)', () => {
+  let dataSource: DataSource;
+
+  beforeAll(async () => {
+    dataSource = new DataSource({
+      type: 'better-sqlite3',
+      database: ':memory:',
+      synchronize: true,
+      logging: false,
+      entities: [TreeCategory],
+    });
+    await dataSource.initialize();
+  });
+
+  afterAll(async () => {
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
+  });
+
+  it('create() seeds parent and children in memory', async () => {
+    const category = await seed(TreeCategory).create();
+
+    expect(category.parent).toBeInstanceOf(TreeCategory);
+    expect(category.children).toHaveLength(2);
+    expect(category.parent!.parent).toBeUndefined();
+  });
+
+  it('save() persists tree entity to the database', async () => {
+    const saved = await seed(TreeCategory).save({ dataSource });
+
+    expect(saved.id).toBeGreaterThan(0);
+    expect(saved.name).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// saveMany — edge cases
+// ---------------------------------------------------------------------------
+
+describe('saveMany — edge cases', () => {
+  let dataSource: DataSource;
+
+  beforeAll(async () => {
+    dataSource = new DataSource({
+      type: 'better-sqlite3',
+      database: ':memory:',
+      synchronize: true,
+      logging: false,
+      entities: [Studio],
+    });
+    await dataSource.initialize();
+  });
+
+  afterAll(async () => {
+    if (dataSource.isInitialized) {
+      await dataSource.destroy();
+    }
+  });
+
+  it('returns an empty array when count is 0', async () => {
+    const result = await seed(Studio).saveMany(0, { dataSource });
+
+    expect(result).toEqual([]);
   });
 });

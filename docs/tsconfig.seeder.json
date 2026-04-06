@@ -1,0 +1,7 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "files": ["../packages/seeder/src/index.ts"]
+}

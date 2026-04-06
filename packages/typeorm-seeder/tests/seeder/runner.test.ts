@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { Column, DataSource, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import type { SeedContext } from '../../src';
-import { runSeeders, saveMany, Seed, Seeder } from '../../src';
+import { runSeeders, seed, Seed, Seeder } from '../../src';
 import type { SeederCtor } from '../../src/seeder/runner.js';
 
 // ---------------------------------------------------------------------------
@@ -195,7 +195,7 @@ describe('seeder suites', () => {
       @Seeder()
       class UserSeeder {
         async run(ctx: SeedContext) {
-          await saveMany(SeedUser, { ...ctx, dataSource: ctx.dataSource!, count: 3 });
+          await seed(SeedUser).saveMany(3, { ...ctx, dataSource: ctx.dataSource! });
         }
       }
 

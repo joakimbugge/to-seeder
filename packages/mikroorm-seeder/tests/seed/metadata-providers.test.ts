@@ -5,7 +5,7 @@ import { Entity, PrimaryKey, Property, ManyToOne, OneToMany } from '@mikro-orm/d
 import { MikroORM } from '@mikro-orm/core';
 import { SqliteDriver } from '@mikro-orm/sqlite';
 import { TsMorphMetadataProvider } from '@mikro-orm/reflection';
-import { Seed, create } from '../../src';
+import { Seed, seed } from '../../src';
 
 @Entity()
 class Author {
@@ -58,14 +58,14 @@ describe('TsMorphMetadataProvider', () => {
   });
 
   it('seeds scalar properties', async () => {
-    const article = await create(Article);
+    const article = await seed(Article).create();
 
     expect(typeof article.title).toBe('string');
     expect(typeof article.body).toBe('string');
   });
 
   it('seeds relation properties', async () => {
-    const author = await create(Author);
+    const author = await seed(Author).create();
 
     expect(typeof author.name).toBe('string');
     expect(author.articles).toHaveLength(2);

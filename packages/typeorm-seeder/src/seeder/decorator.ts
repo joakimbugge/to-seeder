@@ -1,5 +1,5 @@
 import { registerSeeder } from './registry.js';
-import type { SeedContext } from '../seed/registry.js';
+import type { SeedContext } from '../seed/context.js';
 
 /**
  * Interface that seeder classes must implement.
@@ -22,8 +22,7 @@ export interface SeederOptions {
   dependencies?: (new () => SeederInterface)[];
 }
 
-/**
- * Marks a class as a seeder with no explicit dependency configuration.
+/*** Marks a class as a seeder with no explicit dependency configuration.
  */
 export function Seeder(): ClassDecorator;
 /**

@@ -12,7 +12,7 @@ import {
   PrimaryGeneratedColumn,
   type Relation,
 } from 'typeorm';
-import { Seed, saveMany, save } from '../../src';
+import { Seed, seed } from '../../src';
 
 // ---------------------------------------------------------------------------
 // Entities
@@ -112,7 +112,7 @@ describe('bookstore', () => {
   });
 
   it('seeds and persists an author with their books', async () => {
-    const saved = await save(Author, { dataSource });
+    const saved = await seed(Author).save({ dataSource });
 
     const fetched = await dataSource
       .getRepository(Author)
@@ -127,7 +127,7 @@ describe('bookstore', () => {
   });
 
   it('seeds and persists a customer with a favorite author and purchased books', async () => {
-    const saved = await save(Customer, { dataSource });
+    const saved = await seed(Customer).save({ dataSource });
 
     const fetched = await dataSource.getRepository(Customer).findOneOrFail({
       where: { id: saved.id },
@@ -149,7 +149,7 @@ describe('bookstore', () => {
   });
 
   it("the favorite author's own books are also persisted", async () => {
-    const saved = await save(Customer, { dataSource });
+    const saved = await seed(Customer).save({ dataSource });
 
     const fetched = await dataSource.getRepository(Customer).findOneOrFail({
       where: { id: saved.id },
@@ -167,7 +167,7 @@ describe('bookstore', () => {
   });
 
   it('purchased books each have their own independently seeded author', async () => {
-    const saved = await save(Customer, { dataSource });
+    const saved = await seed(Customer).save({ dataSource });
 
     const fetched = await dataSource.getRepository(Customer).findOneOrFail({
       where: { id: saved.id },
@@ -188,7 +188,7 @@ describe('bookstore', () => {
     //     │   └── books (2 Books, author back-ref skipped — ancestor guard)
     //     └── purchasedBooks (3 Books per customer)
     //         └── author (1 Author per book, books skipped — ancestor guard)
-    const saved = await save(Bookstore, { dataSource });
+    const saved = await seed(Bookstore).save({ dataSource });
 
     const bookstore = await dataSource.getRepository(Bookstore).findOneOrFail({
       where: { id: saved.id },
@@ -225,7 +225,7 @@ describe('bookstore', () => {
   });
 
   it('seeds and persists multiple customers independently', async () => {
-    const saved = await saveMany(Customer, { count: 3, dataSource });
+    const saved = await seed(Customer).saveMany(3, { dataSource });
 
     expect(saved).toHaveLength(3);
 

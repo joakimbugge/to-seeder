@@ -1,5 +1,5 @@
 import { registerSeeder } from './registry.js';
-import type { SeedContext } from '../seed/registry.js';
+import type { SeedContext } from '../seed/context.js';
 
 /**
  * Interface that seeder classes must implement.

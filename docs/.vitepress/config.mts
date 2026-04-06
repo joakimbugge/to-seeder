@@ -22,8 +22,15 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Core',
+        items: [
+          { text: 'Overview', link: '/seeder/' },
+        ],
+      },
+      {
         text: 'API reference',
         items: [
+          { text: 'seeder', link: '/api/seeder/' },
           { text: 'typeorm-seeder', link: '/api/typeorm-seeder/' },
           { text: 'nest-typeorm-seeder', link: '/api/nest-typeorm-seeder/' },
           { text: 'mikroorm-seeder', link: '/api/mikroorm-seeder/' },
@@ -33,6 +40,14 @@ export default defineConfig({
     ],
 
     sidebar: {
+      '/seeder/': [
+        {
+          text: 'seeder',
+          items: [
+            { text: 'Overview', link: '/seeder/' },
+          ],
+        },
+      ],
       '/guide/': [
         {
           text: 'typeorm-seeder',

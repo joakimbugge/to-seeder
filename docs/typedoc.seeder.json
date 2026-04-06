@@ -1,0 +1,11 @@
+{
+  "entryPoints": ["../packages/seeder/src/index.ts"],
+  "tsconfig": "./tsconfig.seeder.json",
+  "plugin": ["typedoc-plugin-markdown"],
+  "out": "api/seeder",
+  "name": "@joakimbugge/seeder",
+  "readme": "none",
+  "hideGenerator": true,
+  "entryFileName": "index",
+  "useCodeBlocks": true
+}
