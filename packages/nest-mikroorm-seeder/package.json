@@ -54,6 +54,7 @@
     "node": ">=16.13.0"
   },
   "peerDependencies": {
+    "@joakimbugge/seeder": ">=0.1.0",
     "@joakimbugge/mikroorm-seeder": ">=0.1.1",
     "@mikro-orm/core": ">=7.0.0",
     "@mikro-orm/nestjs": ">=7.0.0",
@@ -62,6 +63,7 @@
     "reflect-metadata": ">=0.1.0"
   },
   "devDependencies": {
+    "@joakimbugge/seeder": "workspace:^",
     "@joakimbugge/mikroorm-seeder": "workspace:^",
     "@mikro-orm/core": "^7.0.0",
     "@mikro-orm/decorators": "^7.0.0",

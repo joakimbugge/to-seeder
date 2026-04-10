@@ -93,6 +93,9 @@ importers:
       '@joakimbugge/mikroorm-seeder':
         specifier: workspace:^
         version: link:../mikroorm-seeder
+      '@joakimbugge/seeder':
+        specifier: workspace:^
+        version: link:../seeder
       '@mikro-orm/core':
         specifier: ^7.0.0
         version: 7.0.6(dataloader@2.2.3)
@@ -120,6 +123,9 @@ importers:
 
   packages/nest-typeorm-seeder:
     devDependencies:
+      '@joakimbugge/seeder':
+        specifier: workspace:^
+        version: link:../seeder
       '@joakimbugge/typeorm-seeder':
         specifier: workspace:^
         version: link:../typeorm-seeder
