@@ -65,7 +65,7 @@
     "@joakimbugge/seeder": "workspace:^",
     "@joakimbugge/typeorm-seeder": "workspace:^",
     "@nestjs/common": "^11.1.18",
-    "@nestjs/core": "^11.0.0",
+    "@nestjs/core": "^11.1.18",
     "@nestjs/testing": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "typeorm": "1.0.0-nightly.20260405"
