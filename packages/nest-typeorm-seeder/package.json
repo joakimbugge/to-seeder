@@ -64,7 +64,7 @@
   "devDependencies": {
     "@joakimbugge/seeder": "workspace:^",
     "@joakimbugge/typeorm-seeder": "workspace:^",
-    "@nestjs/common": "^11.0.0",
+    "@nestjs/common": "^11.1.18",
     "@nestjs/core": "^11.0.0",
     "@nestjs/testing": "^11.0.0",
     "reflect-metadata": "^0.2.2",
