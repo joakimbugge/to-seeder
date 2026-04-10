@@ -77,6 +77,6 @@
   },
   "dependencies": {
     "@joakimbugge/seeder": "workspace:^",
-    "tinyglobby": "^0.2.15"
+    "tinyglobby": "^0.2.16"
   }
 }
