@@ -28,10 +28,7 @@ export type RunSeedersOptions = Omit<BaseRunSeedersOptions<SeedContext>, 'loggin
  * // Delegate logging to TypeORM's own logger
  * await runSeeders([PostSeeder], { dataSource, logging: 'typeorm' })
  */
-export function runSeeders(
-  seeders: SeederCtor[],
-  options: RunSeedersOptions = {},
-): Promise<Map<SeederCtor, unknown>> {
+export function runSeeders(seeders: SeederCtor[], options: RunSeedersOptions = {}) {
   const { logging = false, ...rest } = options;
 
   // Make sure logging is a boolean. Resolve to a TypeORM logger later while also changing logging to `true`

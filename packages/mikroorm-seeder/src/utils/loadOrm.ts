@@ -5,7 +5,7 @@ import type { MikroORM } from '@mikro-orm/core';
 
 const CONFIG_CANDIDATES = ['mikroorm-seeder.config.ts', 'mikroorm-seeder.config.js'];
 
-async function importOrmFile(filePath: string): Promise<MikroORM> {
+async function importOrmFile(filePath: string) {
   const resolved = path.resolve(filePath);
   const mod = await import(pathToFileURL(resolved).href);
   const orm: MikroORM = mod.default ?? mod.orm;
@@ -29,7 +29,7 @@ async function importOrmFile(filePath: string): Promise<MikroORM> {
  *
  * Exits the process with a helpful error message if no MikroORM instance is found.
  */
-export async function loadOrm(filePath?: string): Promise<MikroORM> {
+export async function loadOrm(filePath?: string) {
   if (filePath) {
     if (!existsSync(path.resolve(filePath))) {
       console.error(`Error: MikroORM config file not found: "${filePath}"`);

@@ -5,7 +5,7 @@ import type { DataSource } from 'typeorm';
 
 const CONFIG_CANDIDATES = ['typeorm-seeder.config.ts', 'typeorm-seeder.config.js'];
 
-async function importDataSourceFile(filePath: string): Promise<DataSource> {
+async function importDataSourceFile(filePath: string) {
   const resolved = path.resolve(filePath);
   const mod = await import(pathToFileURL(resolved).href);
   const ds: DataSource = mod.default ?? mod.dataSource;
@@ -33,7 +33,7 @@ async function importDataSourceFile(filePath: string): Promise<DataSource> {
  *
  * Exits the process with a helpful error message if no DataSource is found.
  */
-export async function loadDataSource(filePath?: string): Promise<DataSource> {
+export async function loadDataSource(filePath?: string) {
   if (filePath) {
     if (!existsSync(path.resolve(filePath))) {
       console.error(`Error: DataSource file not found: "${filePath}"`);
