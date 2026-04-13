@@ -43,7 +43,7 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v6
         with:
-          files: packages/typeorm-seeder/coverage/lcov.info,packages/nest-typeorm-seeder/coverage/lcov.info
+          files: packages/typeorm-seeder/coverage/lcov.info,packages/nest-typeorm-seeder/coverage/lcov.info,packages/mikroorm-seeder/coverage/lcov.info,packages/nest-mikroorm-seeder/coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
 
   release-please:
