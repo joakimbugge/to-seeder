@@ -28,7 +28,8 @@
     "@joakimbugge/typeorm-seeder": "./dist/cli.mjs"
   },
   "files": [
-    "dist"
+    "dist",
+    "llms.txt"
   ],
   "scripts": {
     "build": "tsdown",

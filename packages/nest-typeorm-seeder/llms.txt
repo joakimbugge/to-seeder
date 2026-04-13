@@ -1,0 +1,170 @@
+# @joakimbugge/nest-typeorm-seeder
+
+> NestJS module for `@joakimbugge/typeorm-seeder`. Runs your `@Seeder` classes automatically on application bootstrap — once per seeder by default, tracked in a database table so watch-mode restarts do not re-seed. For simple cases a `run` callback lets you seed without any class boilerplate.
+
+This package handles NestJS integration only. The seeding itself — `@Seed()`, `@Seeder`, `seed()`, entity factories — is defined in `@joakimbugge/typeorm-seeder`. Read that package's documentation first.
+
+Full documentation: https://joakimbugge.github.io/seeders/nest/
+
+## Installation
+
+```bash
+npm install @joakimbugge/nest-typeorm-seeder @joakimbugge/typeorm-seeder
+```
+
+Peer dependencies (`@nestjs/common`, `@nestjs/core`, `typeorm`, `reflect-metadata`) are required but are already present in any NestJS + TypeORM project.
+
+## Basic usage
+
+Import `SeederModule` in your root module. It auto-detects the `DataSource` registered by `TypeOrmModule` — no extra wiring needed:
+
+```ts
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { SeederModule } from '@joakimbugge/nest-typeorm-seeder'
+import { UserSeeder } from './seeders/UserSeeder.js'
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({ ... }),
+    SeederModule.forRoot({ seeders: [UserSeeder] }),
+  ],
+})
+export class AppModule {}
+```
+
+Seeders with `@Seeder({ dependencies: [...] })` are topologically sorted and run in the correct order automatically.
+
+`seeders` accepts constructors and glob patterns:
+
+```ts
+SeederModule.forRoot({ seeders: [UserSeeder, 'dist/seeders/**/*.js'] })
+// TypeScript source files work too when running via ts-node:
+SeederModule.forRoot({ seeders: ['src/seeders/**/*.ts'] })
+```
+
+## Providing a DataSource explicitly
+
+```ts
+SeederModule.forRoot({
+  seeders: [UserSeeder],
+  dataSource: myDataSource,  // must already be initialized
+})
+```
+
+## Async configuration
+
+Use `forRootAsync` to resolve options from the DI container:
+
+```ts
+import { ConfigService } from '@nestjs/config'
+
+SeederModule.forRootAsync({
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: (config: ConfigService) => ({
+    seeders: [UserSeeder],
+    enabled: config.get('SEED') === 'true',
+  }),
+})
+```
+
+## Run once
+
+By default (`runOnce: true`) each seeder is recorded in a `seeders` table on first run and skipped on subsequent boots. This works like TypeORM migrations.
+
+| `dropSchema` | `runOnce` | What happens |
+|---|---|---|
+| `true` | `true` | Tracking table dropped → all seeders run every boot |
+| `true` | `false` | Always runs |
+| `false` | `true` | Already-run seeders are skipped |
+| `false` | `false` | Always runs |
+
+`dropSchema: true` is typical in development. `runOnce: true` with a persistent schema is right for staging and production.
+
+### Evolving seed data
+
+Treat seeders like migrations — once one has run in a persistent environment, leave it alone and create a new seeder:
+
+```ts
+@Seeder()
+class UserSeeder { ... }                              // already ran, do not edit
+
+@Seeder({ dependencies: [UserSeeder] })
+class UserSeederV2 { ... }                            // adds more data on next boot
+```
+
+### Re-seeding
+
+Force a seeder to run again with `seed:untrack`:
+
+```bash
+npx @joakimbugge/typeorm-seeder seed:untrack UserSeeder -d ./dist/datasource.js
+```
+
+Or delete directly from the database:
+
+```sql
+DELETE FROM "seeders" WHERE name = 'UserSeeder';
+DELETE FROM "seeders";  -- reset all
+```
+
+## Feature modules
+
+Register seeders alongside the entities they belong to instead of centralising everything in the root module:
+
+```ts
+// UserModule.ts
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    SeederModule.forFeature([UserSeeder]),
+  ],
+})
+export class UserModule {}
+
+// AppModule.ts
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({ ... }),
+    SeederModule,        // or SeederModule.forRoot({ enabled: ... })
+    UserModule,
+  ],
+})
+export class AppModule {}
+```
+
+`SeederModule` must always be imported at the root — it is what actually runs the seeders collected from `forFeature()`. All seeders from `forRoot` and `forFeature` are merged into a single list before execution.
+
+Cross-module seeder dependencies work without extra wiring:
+
+```ts
+@Seeder({ dependencies: [TenantSeeder] })  // TenantSeeder lives in TenantModule
+export class UserSeeder implements SeederInterface { ... }
+```
+
+## Seed scripts (run callback)
+
+For simple cases that don't need named, tracked seeders:
+
+```ts
+SeederModule.forRoot({
+  async run({ dataSource }) {
+    await seed(User).saveMany(10, { dataSource })
+  },
+})
+```
+
+`run` always executes on every boot — no run-once tracking applies. `runOnce` is not accepted when `seeders` is omitted.
+
+Use both together — seeders run first, then `run`:
+
+```ts
+SeederModule.forRoot({
+  seeders: [UserSeeder],
+  async run({ dataSource }) {
+    // UserSeeder has already run at this point
+    await seed(AdminUser).save({ dataSource })
+  },
+})
+```

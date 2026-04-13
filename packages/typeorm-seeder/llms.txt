@@ -1,0 +1,358 @@
+# @joakimbugge/typeorm-seeder
+
+> Decorator-based entity seeding for TypeORM. Annotate entity properties with `@Seed()` to describe how they should be populated, then create or persist fully populated entity graphs — including relations, embedded types, and circular guards — with a single call.
+
+Full documentation: https://joakimbugge.github.io/seeders/guide/
+
+## Installation
+
+```bash
+npm install @joakimbugge/typeorm-seeder typeorm reflect-metadata
+```
+
+Requires these `tsconfig.json` options:
+
+```json
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}
+```
+
+## @Seed() decorator
+
+Annotate entity properties with `@Seed()`. Scalar properties take a factory function; relation properties take the bare decorator or a `count` option.
+
+```ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm'
+import { faker } from '@faker-js/faker'
+import { Seed } from '@joakimbugge/typeorm-seeder'
+
+@Entity()
+class Author {
+  @PrimaryGeneratedColumn()
+  id!: number
+
+  @Seed(() => faker.person.fullName())
+  @Column()
+  name!: string
+
+  @Seed({ count: 3 })           // seed 3 related Book instances
+  @OneToMany(() => Book, (b) => b.author)
+  books!: Book[]
+}
+
+@Entity()
+class Book {
+  @Seed(() => faker.lorem.words(4))
+  @Column()
+  title!: string
+
+  @Seed()                        // bare decorator on a to-one relation
+  @ManyToOne(() => Author, (a) => a.books)
+  author!: Author
+}
+```
+
+### Sequence index
+
+The factory receives a zero-based index as its third argument — counts up across `createMany`/`saveMany` batches:
+
+```ts
+@Seed((_, __, i) => `user-${i}@example.com`)
+@Column()
+email!: string
+```
+
+### Depending on earlier properties
+
+Properties are seeded in declaration order. Each factory receives the partially-built entity as its second argument:
+
+```ts
+@Seed(() => faker.date.past())
+@Column()
+beginDate!: Date
+
+@Seed((_, self: Event) => faker.date.future({ refDate: self.beginDate }))
+@Column()
+endDate!: Date
+```
+
+### Circular guard
+
+When seeding `Author`, each `Book`'s `author` back-relation is left `undefined` to prevent infinite recursion. Seeding a `Book` directly works fine and does populate `book.author`.
+
+## seed() builder
+
+`seed(EntityClass)` returns a builder with four methods.
+
+### save / saveMany — persist to database
+
+```ts
+import { seed } from '@joakimbugge/typeorm-seeder'
+
+const author = await seed(Author).save({ dataSource })
+// author.id    → assigned by the database
+// author.books → 3 persisted Book instances
+
+const authors = await seed(Author).saveMany(5, { dataSource })
+```
+
+### create / createMany — build without persisting
+
+```ts
+const author = await seed(Author).create()
+// Plain Author instance — no id, fully populated relations
+
+const books = await seed(Book).createMany(10)
+```
+
+### Multiple entity types at once
+
+```ts
+const [author, book] = await seed([Author, Book]).create()
+// Relations between Author and Book are disabled by default
+
+const [author, book] = await seed([Author, Book]).save({ dataSource, relations: true })
+// relations: true enables cross-entity relation seeding
+```
+
+`createMany`/`saveMany` return an array per class:
+
+```ts
+const [authors, books] = await seed([Author, Book]).createMany(3)
+// authors → [Author, Author, Author]
+// books   → [Book, Book, Book]
+```
+
+### relations option
+
+```ts
+const author = await seed(Author).create({ relations: false })
+// author.books → undefined (no relation properties set)
+```
+
+### values option — override seeded properties
+
+```ts
+const booking = await seed(Booking).save({ dataSource, values: { status: 'confirmed' } })
+
+// Per-instance factory in values:
+const bookings = await seed(Booking).saveMany(10, {
+  dataSource,
+  values: {
+    price: () => faker.number.float({ min: 10, max: 500 }),
+    status: 'confirmed',
+  },
+})
+```
+
+`values` runs after all `@Seed` factories and wins unconditionally. Works on properties with no `@Seed` decorator too.
+
+### Accessing DataSource inside a factory
+
+The `dataSource` you pass in options is forwarded to every factory via `SeedContext`:
+
+```ts
+@Seed(async ({ dataSource }) => {
+  return dataSource!.getRepository(Role).findOneBy({ name: 'admin' })
+})
+@ManyToOne(() => Role)
+role!: Role
+```
+
+## @Seeder and runSeeders
+
+Organize seeding into classes for complex scenarios. Declare dependencies and let the library determine execution order.
+
+```ts
+import { Seeder, runSeeders, seed } from '@joakimbugge/typeorm-seeder'
+import type { SeederInterface, SeedContext } from '@joakimbugge/typeorm-seeder'
+
+@Seeder()
+class UserSeeder implements SeederInterface {
+  async run(ctx: SeedContext) {
+    await seed(User).saveMany(10, ctx)
+  }
+}
+
+@Seeder({ dependencies: [UserSeeder] })
+class PostSeeder implements SeederInterface {
+  async run(ctx: SeedContext) {
+    await seed(Post).saveMany(50, ctx)
+  }
+}
+
+await runSeeders([PostSeeder], { dataSource })
+// UserSeeder runs first, then PostSeeder
+```
+
+- Dependencies always complete before the seeders that depend on them.
+- Seeders with no dependency relationship run **concurrently**.
+- A seeder is run at most once, even if declared multiple times.
+- Circular dependencies are detected at runtime and throw.
+
+### Returning seeded entities
+
+```ts
+const results = await runSeeders([UserSeeder], { dataSource })
+const users = results.get(UserSeeder) as User[]
+```
+
+### Seeding without @Seed()
+
+Use `values` to inject data at call time instead of on the decorator:
+
+```ts
+@Seeder({ dependencies: [UserSeeder] })
+class BookingSeeder implements SeederInterface {
+  async run({ dataSource }: SeedContext) {
+    const users = await dataSource!.getRepository(User).find()
+    const user = faker.helpers.arrayElement(users)
+    await seed(Booking).saveMany(10, { dataSource, values: { user } })
+  }
+}
+```
+
+## CLI
+
+Install `ts-node` as a dev dependency to use `.ts` files directly.
+
+```bash
+# Run all @Seeder classes from a glob pattern
+npx @joakimbugge/typeorm-seeder seed:run './src/seeders/*.ts' -d ./src/datasource.ts
+
+# Persist N instances of every entity that has @Seed decorators
+npx @joakimbugge/typeorm-seeder seed:entities './src/entities/*.ts' -d ./src/datasource.ts --count 20
+
+# List seeder run history
+npx @joakimbugge/typeorm-seeder seed:list -d ./src/datasource.ts
+
+# Remove a seeder from history so it runs again
+npx @joakimbugge/typeorm-seeder seed:untrack UserSeeder -d ./src/datasource.ts
+```
+
+Pass `--dry-run` (`-n`) to `seed:run` or `seed:entities` to preview without writing to the database.
+
+The DataSource file must export a DataSource as the default export:
+
+```ts
+// datasource.ts
+import { DataSource } from 'typeorm'
+export default new DataSource({ ... })
+```
+
+If `-d` is omitted, the CLI looks for `typeorm-seeder.config.ts` then `typeorm-seeder.config.js` in the current directory.
+
+npm scripts shorthand:
+
+```json
+{
+  "scripts": {
+    "seed:run": "typeorm-seeder seed:run './src/seeders/*.ts' -d ./src/datasource.ts"
+  }
+}
+```
+
+## Logging
+
+```ts
+// Console logger (console.log for progress, console.warn for failures)
+await runSeeders([UserSeeder], { logging: true })
+
+// Delegate to TypeORM's own logger
+await runSeeders([UserSeeder], { dataSource, logging: 'typeorm' })
+
+// Custom logger
+await runSeeders([UserSeeder], {
+  logging: true,
+  logger: { log: (msg) => myLogger.info(msg), warn: (msg) => myLogger.warn(msg) },
+})
+```
+
+## Hooks
+
+```ts
+await runSeeders([UserSeeder, PostSeeder], {
+  dataSource,
+  onBefore: (seeder) => console.log(`Starting ${seeder.name}...`),
+  onAfter: (seeder, durationMs) => console.log(`${seeder.name} done in ${durationMs}ms`),
+  onError: (seeder, error) => console.error(`${seeder.name} failed`, error),
+  skip: (seeder) => alreadyRun.has(seeder.name),  // return true to skip
+})
+```
+
+Skipped seeders do not trigger `onBefore`, `onAfter`, or `onError`.
+
+## Running seed scripts directly
+
+When running with Node.js, `reflect-metadata` must be the **first** import:
+
+```ts
+import 'reflect-metadata'
+import { seed } from '@joakimbugge/typeorm-seeder'
+```
+
+TypeScript execution — use ts-node, not tsx (tsx strips decorator metadata):
+
+```bash
+node --no-warnings --loader ts-node/esm src/seed.ts   # ESM
+npx ts-node src/seed.ts                                # CommonJS
+```
+
+### Loading entities/seeders from glob patterns
+
+```ts
+import { loadEntities, loadSeeders } from '@joakimbugge/seeder'
+import { seed, runSeeders } from '@joakimbugge/typeorm-seeder'
+
+const entities = await loadEntities(['dist/entities/**/*.js'])
+const seeders = await loadSeeders([UserSeeder, 'dist/seeders/Post*.js'])
+await runSeeders(seeders, { dataSource })
+```
+
+## Tree entities
+
+All four TypeORM tree strategies work with `@Seed`: `adjacency-list`, `materialized-path`, `closure-table`, `nested-set`.
+
+```ts
+@Entity()
+@Tree('materialized-path')
+class Category {
+  @Seed(() => faker.commerce.department())
+  @Column()
+  name!: string
+
+  @Seed()
+  @TreeParent()
+  parent?: Category
+
+  @Seed({ count: 2 })
+  @TreeChildren()
+  children!: Category[]
+}
+
+const category = await seed(Category).save({ dataSource })
+// category.parent   → one Category (no further parent — circular guard)
+// category.children → [Category, Category] (no further children)
+```
+
+Depth is limited to one level by the circular guard. For deeper trees, build them manually in a `@Seeder` using the TypeORM tree repository API.
+
+## NestJS integration
+
+Use `@joakimbugge/nest-typeorm-seeder` for NestJS projects. It wraps `runSeeders` in a `SeederModule` that runs seeders on application bootstrap and tracks which have already run.
+
+```ts
+import { SeederModule } from '@joakimbugge/nest-typeorm-seeder'
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({ ... }),
+    SeederModule.forRoot({ seeders: [UserSeeder] }),
+  ],
+})
+export class AppModule {}
+```
