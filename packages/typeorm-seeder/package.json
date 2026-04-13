@@ -1,6 +1,6 @@
 {
   "name": "@joakimbugge/typeorm-seeder",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "Decorator-based seeder library for TypeORM",
   "repository": {
     "type": "git",

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.12.0](https://github.com/joakimbugge/seeders/compare/typeorm-seeder-v0.11.0...typeorm-seeder-v0.12.0) (2026-04-13)
+
+
+### Features
+
+* populate context with previously seeded entities ([6daf871](https://github.com/joakimbugge/seeders/commit/6daf871eb34e958d3b9c30d4e20ede46ecf33135))
+
+
+### Bug Fixes
+
+* correct types and remove unncessary explicit types ([4c1517f](https://github.com/joakimbugge/seeders/commit/4c1517f635facfbee407fcf0d9eb31085045e432))
+
 ## [0.11.0](https://github.com/joakimbugge/seeders/compare/typeorm-seeder-v0.10.0...typeorm-seeder-v0.11.0) (2026-04-13)
 
 

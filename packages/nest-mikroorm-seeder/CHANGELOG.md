@@ -1,5 +1,12 @@
 # @joakimbugge/nest-mikroorm-seeder
 
+## [0.3.1](https://github.com/joakimbugge/seeders/compare/nest-mikroorm-seeder-v0.3.0...nest-mikroorm-seeder-v0.3.1) (2026-04-13)
+
+
+### Bug Fixes
+
+* correct types and remove unncessary explicit types ([4c1517f](https://github.com/joakimbugge/seeders/commit/4c1517f635facfbee407fcf0d9eb31085045e432))
+
 ## [0.3.0](https://github.com/joakimbugge/seeders/compare/nest-mikroorm-seeder-v0.2.0...nest-mikroorm-seeder-v0.3.0) (2026-04-13)
 
 
