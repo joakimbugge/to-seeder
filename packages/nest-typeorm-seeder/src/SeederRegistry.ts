@@ -15,7 +15,7 @@ export class SeederRegistry {
   }
 
   /** Returns all registered seeders in the order they were registered. */
-  getAll(): (SeederCtor | string)[] {
+  getAll() {
     return this.seeders;
   }
 }

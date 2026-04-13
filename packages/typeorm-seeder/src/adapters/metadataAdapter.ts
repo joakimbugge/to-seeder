@@ -1,4 +1,4 @@
-import type { MetadataAdapter } from '@joakimbugge/seeder';
+import type { EntityConstructor, MetadataAdapter } from '@joakimbugge/seeder';
 import { getMetadataArgsStorage } from 'typeorm';
 
 export const metadataAdapter: MetadataAdapter = {
@@ -7,7 +7,7 @@ export const metadataAdapter: MetadataAdapter = {
       .filterEmbeddeds(hierarchy)
       .map((e) => ({
         propertyName: e.propertyName,
-        getClass: e.type as () => never,
+        getClass: e.type as () => EntityConstructor,
       }));
   },
 
@@ -17,7 +17,7 @@ export const metadataAdapter: MetadataAdapter = {
       .filter((r) => typeof r.type === 'function')
       .map((r) => ({
         propertyName: r.propertyName,
-        getClass: r.type as () => never,
+        getClass: r.type as () => EntityConstructor,
         isArray: r.relationType === 'one-to-many' || r.relationType === 'many-to-many',
       }));
   },

@@ -22,10 +22,7 @@ interface CascadeState {
   original: boolean;
 }
 
-function collectEntityClasses(
-  entity: EntityInstance,
-  visited = new Set<EntityConstructor>(),
-): EntityConstructor[] {
+function collectEntityClasses(entity: EntityInstance, visited = new Set<EntityConstructor>()) {
   const EntityClass = entity.constructor as EntityConstructor;
 
   if (visited.has(EntityClass)) {
@@ -44,17 +41,14 @@ function collectEntityClasses(
         }
       }
     } else if (value && typeof value === 'object' && value.constructor !== Object) {
-      classes.push(...collectEntityClasses(value as EntityInstance, visited));
+      classes.push(...collectEntityClasses(value, visited));
     }
   }
 
   return classes;
 }
 
-function enableCascadeInsert(
-  EntityClass: EntityConstructor,
-  dataSource: DataSource,
-): CascadeState[] {
+function enableCascadeInsert(EntityClass: EntityConstructor, dataSource: DataSource) {
   const states: CascadeState[] = [];
 
   try {
@@ -77,7 +71,7 @@ function restoreCascade(states: CascadeState[]) {
   }
 }
 
-function isTreeEntity(EntityClass: EntityConstructor, dataSource: DataSource): boolean {
+function isTreeEntity(EntityClass: EntityConstructor, dataSource: DataSource) {
   try {
     return !!dataSource.getMetadata(EntityClass).treeType;
   } catch {
@@ -89,7 +83,7 @@ async function saveTreeEntity<T extends EntityInstance>(
   EntityClass: EntityConstructor<T>,
   entity: T,
   dataSource: DataSource,
-): Promise<T> {
+) {
   const metadata = dataSource.getMetadata(EntityClass);
   const repo = dataSource.getTreeRepository(EntityClass);
 

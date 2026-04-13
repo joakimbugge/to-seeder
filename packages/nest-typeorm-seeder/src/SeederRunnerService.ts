@@ -30,7 +30,7 @@ export class SeederRunnerService implements OnApplicationBootstrap {
     private readonly registry: SeederRegistry,
   ) {}
 
-  async onApplicationBootstrap(): Promise<void> {
+  async onApplicationBootstrap() {
     if (this.options.enabled === false) {
       return;
     }
@@ -108,24 +108,21 @@ export class SeederRunnerService implements OnApplicationBootstrap {
    * When `dropSchema` is true the table is dropped with the rest of the schema on every
    * start, so all seeders run fresh — which is the expected behaviour in that case.
    */
-  private async ensureHistoryTable(dataSource: DataSource, tableName: string): Promise<void> {
+  private async ensureHistoryTable(dataSource: DataSource, tableName: string) {
     await dataSource.query(
       `CREATE TABLE IF NOT EXISTS "${tableName}" (name VARCHAR(255) PRIMARY KEY NOT NULL, executed_at VARCHAR(32) NOT NULL)`,
     );
   }
 
   /** Returns the names of all seeders recorded in the history table. */
-  private async getExecutedSeeders(
-    dataSource: DataSource,
-    tableName: string,
-  ): Promise<Set<string>> {
+  private async getExecutedSeeders(dataSource: DataSource, tableName: string) {
     const rows: { name: string }[] = await dataSource.query(`SELECT name FROM "${tableName}"`);
 
     return new Set(rows.map((r) => r.name));
   }
 
   /** Records a successful seeder run in the history table so it is skipped on future boots. */
-  private async recordRun(dataSource: DataSource, tableName: string, name: string): Promise<void> {
+  private async recordRun(dataSource: DataSource, tableName: string, name: string) {
     const executedAt = new Date().toISOString();
 
     await dataSource.query(
@@ -141,7 +138,7 @@ export class SeederRunnerService implements OnApplicationBootstrap {
    * If a raw, uninitialized DataSource is passed directly via options, the caller is
    * responsible for calling `dataSource.initialize()` before the application starts.
    */
-  private async resolveDataSource(): Promise<DataSource> {
+  private async resolveDataSource() {
     if (this.options.dataSource) {
       return this.options.dataSource;
     }

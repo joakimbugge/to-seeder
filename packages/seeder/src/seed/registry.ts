@@ -100,7 +100,7 @@ export function registerSeed(target: EntityConstructor, entry: SeedEntry) {
  * Returns all seed entries for the given class, including those inherited from
  * parent classes. Parent entries come first, preserving declaration order.
  */
-export function getSeeds(target: EntityConstructor): SeedEntry[] {
+export function getSeeds(target: EntityConstructor) {
   const entries: SeedEntry[] = [];
   let current = target;
 

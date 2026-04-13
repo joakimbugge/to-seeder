@@ -15,11 +15,11 @@ interface InternalContext extends SeedContext {
   _ancestors: Set<EntityConstructor>;
 }
 
-function getAncestors(context: SeedContext): Set<EntityConstructor> {
+function getAncestors(context: SeedContext) {
   return (context as InternalContext)._ancestors ?? new Set();
 }
 
-function withAncestor(context: SeedContext, cls: EntityConstructor): InternalContext {
+function withAncestor(context: SeedContext, cls: EntityConstructor) {
   const ancestors = getAncestors(context);
 
   // Inherit `previous` as-is. Child factories can read parent-batch entries via
@@ -28,7 +28,7 @@ function withAncestor(context: SeedContext, cls: EntityConstructor): InternalCon
   return { ...context, _ancestors: new Set([...ancestors, cls]) };
 }
 
-export function getClassHierarchy(target: EntityConstructor): EntityConstructor[] {
+export function getClassHierarchy(target: EntityConstructor) {
   const hierarchy: EntityConstructor[] = [];
   let current: EntityConstructor | null = target;
 
@@ -46,7 +46,7 @@ export async function applyValues<T extends EntityInstance>(
   values: SeedValues<T>,
   context: SeedContext,
   index: number,
-): Promise<void> {
+) {
   const record = instance as Record<string | symbol, unknown>;
 
   for (const key of Object.keys(values) as (keyof T & string)[]) {
@@ -71,7 +71,7 @@ export async function createManyInstances<T extends EntityInstance>(
   EntityClass: EntityConstructor<T>,
   options: BatchOptions<T>,
   adapter: MetadataAdapter,
-): Promise<T[]> {
+) {
   const instances: T[] = [];
 
   for (let i = 0; i < options.count; i++) {
@@ -97,7 +97,7 @@ export async function createOne<T extends EntityInstance>(
   context: SeedContext,
   index: number,
   adapter: MetadataAdapter,
-): Promise<T> {
+) {
   const instance = new EntityClass();
   const ancestors = getAncestors(context);
   const childContext = withAncestor(context, EntityClass);

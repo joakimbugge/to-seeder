@@ -32,7 +32,7 @@ export function runSeeders(seeders: SeederCtor[], options: RunSeedersOptions = {
   const { logging = false, ...rest } = options;
 
   // Make sure logging is a boolean. Resolve a MikroORM logger later, while also changing logging to `true`
-  let resolvedLogging: false | true = logging === 'mikroorm' ? false : logging;
+  let resolvedLogging = logging === 'mikroorm' ? false : logging;
   let resolvedLogger = rest.logger;
 
   if (logging === 'mikroorm') {

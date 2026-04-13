@@ -46,7 +46,7 @@ export type RunSeedersOptions<TContext extends SeedContext = SeedContext> = TCon
  * ascending order so every dependency completes before the seeders that need it start.
  * Throws a descriptive error if a circular dependency is detected.
  */
-function buildLevels(roots: SeederCtor[]): SeederCtor[][] {
+function buildLevels(roots: SeederCtor[]) {
   const graph = new DepGraph<SeederCtor>();
   const byName = new Map<string, SeederCtor>();
 
@@ -102,10 +102,7 @@ function buildLevels(roots: SeederCtor[]): SeederCtor[][] {
   return levels;
 }
 
-function resolveLog(
-  logging: false | true,
-  logger: SeederLogger | undefined,
-): { progress(msg: string): void; failure(msg: string): void } | null {
+function resolveLog(logging: false | true, logger: SeederLogger | undefined) {
   if (!logging) {
     return null;
   }
@@ -113,8 +110,8 @@ function resolveLog(
   const log = logger ?? new ConsoleLogger();
 
   return {
-    progress: (msg) => log.log(msg),
-    failure: (msg) => log.warn(msg),
+    progress: (msg: string) => log.log(msg),
+    failure: (msg: string) => log.warn(msg),
   };
 }
 
@@ -135,10 +132,7 @@ function resolveLog(
  *   logger: myLogger,
  * })
  */
-export async function runSeeders(
-  seeders: SeederCtor[],
-  options: RunSeedersOptions = {},
-): Promise<Map<SeederCtor, unknown>> {
+export async function runSeeders(seeders: SeederCtor[], options: RunSeedersOptions = {}) {
   const { logging = false, logger, onBefore, onAfter, onError, skip, ...context } = options;
   const results = new Map<SeederCtor, unknown>();
   const log = resolveLog(logging, logger);

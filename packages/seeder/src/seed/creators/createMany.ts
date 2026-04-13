@@ -57,15 +57,11 @@ export async function createMany<T extends EntityInstance>(
 
   if (values) {
     // `previous` is an internal pipeline detail omitted from the public CreateManyOptions type.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const basePrevious = (options as SeedContext).previous as
-      | ReadonlyMap<Function, readonly any[]>
-      | undefined;
+    const basePrevious = (options as SeedContext).previous;
 
     await Promise.all(
       instances.map((instance, i) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const previous = new Map<Function, readonly any[]>(basePrevious ?? []);
+        const previous = new Map(basePrevious ?? []);
         previous.set(ClassOrClasses, instances.slice(0, i));
         return applyValues(instance, values, { ...options, previous }, i);
       }),

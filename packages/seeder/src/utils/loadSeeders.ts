@@ -19,7 +19,7 @@ import type { SeederCtor } from '../seeder/runner.js';
  * const seeders = await loadSeeders([UserSeeder, 'dist/seeders/Post*.js'])
  * await runSeeders(seeders, options)
  */
-export async function loadSeeders(sources: (SeederCtor | string)[]): Promise<SeederCtor[]> {
+export async function loadSeeders(sources: (SeederCtor | string)[]) {
   const classes: SeederCtor[] = [];
   const patterns: string[] = [];
 

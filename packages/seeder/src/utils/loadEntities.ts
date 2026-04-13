@@ -13,9 +13,7 @@ import type { EntityConstructor, EntityInstance } from '../seed/registry.js';
  * @example
  * const classes = await loadEntities([User, 'src/entities/*.js'])
  */
-export async function loadEntities(
-  sources: (EntityConstructor | string)[],
-): Promise<EntityConstructor[]> {
+export async function loadEntities(sources: (EntityConstructor | string)[]) {
   const classes: EntityConstructor[] = [];
   const patterns: string[] = [];
 

@@ -13,13 +13,12 @@ export async function saveBatch<T extends EntityInstance, TContext extends SeedC
   options: TContext & { count: number; values?: SeedValues<T> },
   metadataAdapter: MetadataAdapter,
   persistenceAdapter: PersistenceAdapter<TContext>,
-): Promise<T[]> {
+) {
   if (options.count === 0) {
     return [];
   }
 
   const entities = await createMany(EntityClass, options, metadataAdapter);
-  const { count: _count, values: _values, ...context } = options;
 
-  return persistenceAdapter.save(EntityClass, entities, context as unknown as TContext);
+  return persistenceAdapter.save(EntityClass, entities, options);
 }

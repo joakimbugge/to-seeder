@@ -27,7 +27,7 @@ export class SeederRunnerService implements OnApplicationBootstrap {
     private readonly registry: SeederRegistry,
   ) {}
 
-  async onApplicationBootstrap(): Promise<void> {
+  async onApplicationBootstrap() {
     if (this.options.enabled === false) {
       return;
     }
@@ -103,7 +103,7 @@ export class SeederRunnerService implements OnApplicationBootstrap {
    * The table persists between restarts, allowing `runOnce` to skip seeders
    * that have already been recorded.
    */
-  private async ensureHistoryTable(em: EntityManager, tableName: string): Promise<void> {
+  private async ensureHistoryTable(em: EntityManager, tableName: string) {
     await em
       .getConnection()
       .execute(
@@ -114,7 +114,7 @@ export class SeederRunnerService implements OnApplicationBootstrap {
   }
 
   /** Returns the names of all seeders recorded in the history table. */
-  private async getExecutedSeeders(em: EntityManager, tableName: string): Promise<Set<string>> {
+  private async getExecutedSeeders(em: EntityManager, tableName: string) {
     const rows = (await em
       .getConnection()
       .execute(`SELECT name FROM "${tableName}"`, [], 'all')) as { name: string }[];
@@ -123,7 +123,7 @@ export class SeederRunnerService implements OnApplicationBootstrap {
   }
 
   /** Records a successful seeder run in the history table so it is skipped on future boots. */
-  private async recordRun(em: EntityManager, tableName: string, name: string): Promise<void> {
+  private async recordRun(em: EntityManager, tableName: string, name: string) {
     const executedAt = new Date().toISOString();
 
     await em
@@ -140,7 +140,7 @@ export class SeederRunnerService implements OnApplicationBootstrap {
    * Prefers an explicit `em` from module options; falls back to forking from the
    * MikroORM instance registered in the NestJS container.
    */
-  private async resolveEntityManager(): Promise<EntityManager> {
+  private async resolveEntityManager() {
     if (this.options.em) {
       return this.options.em;
     }

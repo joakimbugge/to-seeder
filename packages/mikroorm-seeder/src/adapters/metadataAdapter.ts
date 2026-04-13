@@ -37,7 +37,7 @@ export const metadataAdapter: MetadataAdapter = {
       .filter(([, p]) => p.kind === ReferenceKind.EMBEDDED && typeof p.entity === 'function')
       .map(([propName, p]) => ({
         propertyName: propName,
-        getClass: p.entity as () => never,
+        getClass: p.entity as () => EntityConstructor,
       }));
   },
 
@@ -56,7 +56,7 @@ export const metadataAdapter: MetadataAdapter = {
       )
       .map(([propName, p]) => ({
         propertyName: propName,
-        getClass: p.entity as () => never,
+        getClass: p.entity as () => EntityConstructor,
         isArray: p.kind === ReferenceKind.ONE_TO_MANY || p.kind === ReferenceKind.MANY_TO_MANY,
       }));
   },
