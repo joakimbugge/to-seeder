@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/joakimbugge/seeders/compare/typeorm-seeder-v0.10.0...typeorm-seeder-v0.11.0) (2026-04-13)
+
+
+### Features
+
+* add llms.txt ([cec5be6](https://github.com/joakimbugge/seeders/commit/cec5be634d7dcaf397d76dd547ef55c10005d29a))
+
 ## [0.10.0](https://github.com/joakimbugge/seeders/compare/typeorm-seeder-v0.9.0...typeorm-seeder-v0.10.0) (2026-04-10)
 
 

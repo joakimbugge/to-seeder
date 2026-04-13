@@ -1,5 +1,12 @@
 # @joakimbugge/nest-mikroorm-seeder
 
+## [0.3.0](https://github.com/joakimbugge/seeders/compare/nest-mikroorm-seeder-v0.2.0...nest-mikroorm-seeder-v0.3.0) (2026-04-13)
+
+
+### Features
+
+* add llms.txt ([cec5be6](https://github.com/joakimbugge/seeders/commit/cec5be634d7dcaf397d76dd547ef55c10005d29a))
+
 ## [0.2.0](https://github.com/joakimbugge/seeders/compare/nest-mikroorm-seeder-v0.1.1...nest-mikroorm-seeder-v0.2.0) (2026-04-10)
 
 

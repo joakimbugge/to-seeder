@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/joakimbugge/seeders/compare/nest-typeorm-seeder-v0.8.0...nest-typeorm-seeder-v0.9.0) (2026-04-13)
+
+
+### Features
+
+* add llms.txt ([cec5be6](https://github.com/joakimbugge/seeders/commit/cec5be634d7dcaf397d76dd547ef55c10005d29a))
+
 ## [0.8.0](https://github.com/joakimbugge/seeders/compare/nest-typeorm-seeder-v0.7.1...nest-typeorm-seeder-v0.8.0) (2026-04-10)
 
 

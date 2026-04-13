@@ -1,5 +1,12 @@
 # @joakimbugge/mikroorm-seeder
 
+## [0.5.0](https://github.com/joakimbugge/seeders/compare/mikroorm-seeder-v0.4.0...mikroorm-seeder-v0.5.0) (2026-04-13)
+
+
+### Features
+
+* add llms.txt ([cec5be6](https://github.com/joakimbugge/seeders/commit/cec5be634d7dcaf397d76dd547ef55c10005d29a))
+
 ## [0.4.0](https://github.com/joakimbugge/seeders/compare/mikroorm-seeder-v0.3.0...mikroorm-seeder-v0.4.0) (2026-04-10)
 
 
