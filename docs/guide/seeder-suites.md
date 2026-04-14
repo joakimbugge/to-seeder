@@ -52,19 +52,34 @@ class ReportSeeder { … }        // starts after both complete
 
 ## Returning seeded entities
 
-A seeder's `run` method can return a value. `runSeeders` collects these into a `Map` keyed by seeder class:
+A seeder's `run` method can return a value. `runSeeders` collects these into a typed map keyed by seeder class — no casting needed.
+
+The minimal approach is to annotate the return type on `run`:
 
 ```ts
 @Seeder()
 class UserSeeder implements SeederInterface {
-  async run(ctx: SeederRunContext) {
+  async run(ctx: SeederRunContext): Promise<User[]> {
     return await seed(User).createMany(10, ctx)
   }
 }
 
 const results = await runSeeders([UserSeeder], { dataSource })
-const users = results.get(UserSeeder) as User[]
+const users = results.get(UserSeeder) // User[] — inferred, no cast
 ```
+
+To also have TypeScript enforce the return type as part of the interface contract — catching drift if the implementation changes — pass it as the second type parameter to `SeederInterface`:
+
+```ts
+@Seeder()
+class UserSeeder implements SeederInterface<SeederRunContext, User[]> {
+  async run(ctx: SeederRunContext) {
+    return await seed(User).createMany(10, ctx)
+  }
+}
+```
+
+Both approaches produce the same inferred type at the call site. The explicit form adds a compile-time guarantee that `run` always returns `User[]`.
 
 This is especially useful with `create` and `createMany` — since those don't write to the database, the return value is often the only way to get the instances back. The map contains an entry for every seeder that ran; skipped seeders are not included.
 

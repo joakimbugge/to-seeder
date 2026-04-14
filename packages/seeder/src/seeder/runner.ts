@@ -7,7 +7,21 @@ import type { SeedContext } from '../seed/registry.js';
 import type { SeederRunContext } from './context.js';
 
 /** Constructor type for a class decorated with `@Seeder`. */
-export type SeederCtor = new () => SeederInterface;
+export type SeederCtor<TResult = unknown> = new () => SeederInterface<any, TResult>;
+
+/**
+ * Typed result map returned by {@link runSeeders}.
+ *
+ * The `get` overload infers the return type from the seeder constructor, so no casting is needed:
+ *
+ * @example
+ * const results = await runSeeders([UserSeeder, PostSeeder]);
+ * const users = results.get(UserSeeder); // User[]
+ * const posts = results.get(PostSeeder); // Post[]
+ */
+export interface SeederResultMap extends Omit<ReadonlyMap<SeederCtor, unknown>, 'get'> {
+  get<TResult>(key: SeederCtor<TResult>): TResult | undefined;
+}
 
 /** Options for {@link runSeeders}. Extends {@link SeedContext} with lifecycle hooks and logging control. */
 export type RunSeedersOptions<TContext extends SeedContext = SeedContext> = TContext & {
@@ -172,5 +186,5 @@ export async function runSeeders(seeders: SeederCtor[], options: RunSeedersOptio
     );
   }
 
-  return results;
+  return results as SeederResultMap;
 }

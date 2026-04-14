@@ -6,7 +6,7 @@ import type {
 import type { SeedContext } from '../seed/context.js';
 
 /** Constructor type for a class decorated with `@Seeder`. */
-export type SeederCtor = new () => SeederInterface;
+export type SeederCtor<TResult = unknown> = new () => SeederInterface<any, TResult>;
 
 /** Options for {@link runSeeders}. Extends the base options with MikroORM-specific logging. */
 export type RunSeedersOptions = Omit<BaseRunSeedersOptions<SeedContext>, 'logging'> & {

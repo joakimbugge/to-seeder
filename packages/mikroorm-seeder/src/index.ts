@@ -15,6 +15,7 @@ export type {
   SeederLogger,
   SeederInterface,
   SeederOptions,
+  SeederResultMap,
 } from '@joakimbugge/seeder';
 export { ConsoleLogger, Seeder } from '@joakimbugge/seeder';
 export type { SeedContext, SeederRunContext } from './seed/context.js';

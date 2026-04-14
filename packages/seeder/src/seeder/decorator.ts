@@ -5,12 +5,16 @@ import type { SeederRunContext } from './context.js';
 /**
  * Interface that seeder classes must implement.
  *
- * The optional `TContext` parameter lets ORM packages expose a narrowed version
- * whose `run` method receives the ORM-specific context (e.g. `dataSource`, `em`).
- * Defaults to {@link SeederRunContext}, which extends {@link SeedContext} with `results`.
+ * - `TContext` — lets ORM packages expose a narrowed version whose `run` method receives the
+ *   ORM-specific context (e.g. `dataSource`, `em`). Defaults to {@link SeederRunContext}.
+ * - `TResult` — the value returned by `run`. Inferred by {@link runSeeders} so that
+ *   `results.get(MySeeder)` resolves to the correct type without casting.
  */
-export interface SeederInterface<TContext extends SeedContext = SeederRunContext> {
-  run(context: TContext): Promise<unknown>;
+export interface SeederInterface<
+  TContext extends SeedContext = SeederRunContext,
+  TResult = unknown,
+> {
+  run(context: TContext): Promise<TResult>;
 }
 
 /** Configuration options for the {@link Seeder} decorator. */
@@ -20,7 +24,7 @@ export interface SeederOptions<TContext extends SeedContext = SeederRunContext> 
    * Resolved transitively — dependencies of dependencies are included automatically.
    * {@link runSeeders} topologically sorts the full set and detects circular dependencies.
    */
-  dependencies?: (new () => SeederInterface<TContext>)[];
+  dependencies?: (new () => SeederInterface<TContext, any>)[];
 }
 
 /** Marks a class as a seeder with no explicit dependency configuration. */
