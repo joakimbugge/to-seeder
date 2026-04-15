@@ -1,5 +1,13 @@
 # @joakimbugge/mikroorm-seeder
 
+## [0.6.1](https://github.com/joakimbugge/seeders/compare/mikroorm-seeder-v0.6.0...mikroorm-seeder-v0.6.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* add seeder suite return type generic to prevent casting ([dedad13](https://github.com/joakimbugge/seeders/commit/dedad135f4a655e02f6412ed7196205590965615))
+* prevent types naming conflicts between seeder and orm package ([4b8dd8b](https://github.com/joakimbugge/seeders/commit/4b8dd8b58c39c281ba9cb3d52144fe1d91d68e37))
+
 ## [0.6.0](https://github.com/joakimbugge/seeders/compare/mikroorm-seeder-v0.5.0...mikroorm-seeder-v0.6.0) (2026-04-13)
 
 
