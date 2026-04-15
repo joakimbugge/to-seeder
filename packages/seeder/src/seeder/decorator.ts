@@ -15,6 +15,14 @@ export interface SeederInterface<
   TResult = unknown,
 > {
   run(context: TContext): Promise<TResult>;
+  /** Called before `run()` executes. */
+  onBefore?(): void | Promise<void>;
+  /** Called after `run()` completes successfully, with the time it took in milliseconds. */
+  onSuccess?(durationMs: number): void | Promise<void>;
+  /** Called when `run()` throws. The error is re-thrown after this returns. */
+  onError?(error: unknown): void | Promise<void>;
+  /** Always called after `run()` completes — whether it succeeded or threw. Mirrors `try/catch/finally`. */
+  onFinally?(durationMs: number): void | Promise<void>;
 }
 
 /** Configuration options for the {@link Seeder} decorator. */

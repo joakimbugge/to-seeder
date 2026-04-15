@@ -16,7 +16,7 @@ export type RunCallback = (ctx: { em: EntityManager }) => void | Promise<void>;
 
 interface SeederModuleBaseOptions extends Pick<
   RunSeedersOptions,
-  'onBefore' | 'onAfter' | 'onError'
+  'onBefore' | 'onSuccess' | 'onError' | 'onFinally'
 > {
   /**
    * Explicit EntityManager. When omitted, the module resolves MikroORM from

@@ -79,24 +79,27 @@ describe('seeder suites', () => {
       expect(order).toEqual(['B']);
     });
 
-    it('does not call onBefore or onAfter for skipped seeders', async () => {
-      const onBefore = vi.fn();
-      const onAfter = vi.fn();
+    it('does not call onSuccess with skipped seeders and does not invoke class-level hooks', async () => {
+      let receivedSeeders: SeederCtor[] | undefined;
 
       @Seeder()
       class SkipHookSeeder {
+        onBefore() {
+          throw new Error('should not be called');
+        }
+
         async run(_ctx: SeedContext) {}
       }
 
       await runSeeders([SkipHookSeeder], {
         logging: false,
         skip: () => true,
-        onBefore,
-        onAfter,
+        onSuccess: (seeders) => {
+          receivedSeeders = seeders;
+        },
       });
 
-      expect(onBefore).not.toHaveBeenCalled();
-      expect(onAfter).not.toHaveBeenCalled();
+      expect(receivedSeeders).toEqual([]);
     });
   });
 
@@ -191,107 +194,83 @@ describe('seeder suites', () => {
   });
 
   describe('hooks', () => {
-    it('calls onBefore with the seeder constructor before run()', async () => {
-      const events: string[] = [];
-      let receivedCtor: SeederCtor | undefined;
-
-      @Seeder()
-      class HookOrderSeeder {
-        async run(_ctx: SeedContext) {
-          events.push('run');
-        }
-      }
-
-      await runSeeders([HookOrderSeeder], {
-        logging: false,
-        onBefore: (seeder) => {
-          receivedCtor = seeder;
-          events.push('before');
-        },
-      });
-
-      expect(receivedCtor).toBe(HookOrderSeeder);
-      expect(events).toEqual(['before', 'run']);
-    });
-
-    it('calls onAfter with the seeder constructor and a duration after run()', async () => {
-      const events: string[] = [];
-      let receivedCtor: SeederCtor | undefined;
-      let receivedDuration: number | undefined;
-
-      @Seeder()
-      class HookAfterSeeder {
-        async run(_ctx: SeedContext) {
-          events.push('run');
-        }
-      }
-
-      await runSeeders([HookAfterSeeder], {
-        logging: false,
-        onAfter: (seeder, durationMs) => {
-          receivedCtor = seeder;
-          receivedDuration = durationMs;
-          events.push('after');
-        },
-      });
-
-      expect(receivedCtor).toBe(HookAfterSeeder);
-      expect(receivedDuration).toBeGreaterThanOrEqual(0);
-      expect(events).toEqual(['run', 'after']);
-    });
-
-    it('fires onBefore, run, onAfter in order', async () => {
+    it('calls onBefore once before any seeder runs', async () => {
       const events: string[] = [];
 
       @Seeder()
-      class FullOrderSeeder {
+      class HookBeforeA {
         async run(_ctx: SeedContext) {
-          events.push('run');
+          events.push('run:A');
         }
       }
 
-      await runSeeders([FullOrderSeeder], {
+      @Seeder({ dependencies: [HookBeforeA] })
+      class HookBeforeB {
+        async run(_ctx: SeedContext) {
+          events.push('run:B');
+        }
+      }
+
+      await runSeeders([HookBeforeB], {
         logging: false,
         onBefore: () => {
           events.push('before');
         },
-        onAfter: () => {
-          events.push('after');
-        },
       });
 
-      expect(events).toEqual(['before', 'run', 'after']);
+      expect(events).toEqual(['before', 'run:A', 'run:B']);
     });
 
-    it('calls onBefore and onAfter once per seeder in execution order', async () => {
-      const beforeOrder: string[] = [];
-      const afterOrder: string[] = [];
+    it('calls onSuccess with all ran seeders and total duration after all complete', async () => {
+      let receivedSeeders: SeederCtor[] | undefined;
+      let receivedDuration: number | undefined;
 
       @Seeder()
-      class HookDepA {
+      class HookSuccessA {
         async run(_ctx: SeedContext) {}
       }
 
-      @Seeder({ dependencies: [HookDepA] })
-      class HookDepB {
+      @Seeder({ dependencies: [HookSuccessA] })
+      class HookSuccessB {
         async run(_ctx: SeedContext) {}
       }
 
-      await runSeeders([HookDepB], {
+      await runSeeders([HookSuccessB], {
         logging: false,
-        onBefore: (seeder) => {
-          beforeOrder.push(seeder.name);
-        },
-        onAfter: (seeder) => {
-          afterOrder.push(seeder.name);
+        onSuccess: (seeders, durationMs) => {
+          receivedSeeders = seeders;
+          receivedDuration = durationMs;
         },
       });
 
-      expect(beforeOrder).toEqual(['HookDepA', 'HookDepB']);
-      expect(afterOrder).toEqual(['HookDepA', 'HookDepB']);
+      expect(receivedSeeders).toEqual([HookSuccessA, HookSuccessB]);
+      expect(receivedDuration).toBeGreaterThanOrEqual(0);
     });
 
-    it('calls onError with the seeder constructor and the thrown error', async () => {
+    it('fires onBefore then all seeders then onSuccess', async () => {
+      const events: string[] = [];
+
+      @Seeder()
+      class GlobalOrderSeeder {
+        async run(_ctx: SeedContext) {
+          events.push('run');
+        }
+      }
+
+      await runSeeders([GlobalOrderSeeder], {
+        logging: false,
+        onBefore: () => {
+          events.push('before');
+        },
+        onSuccess: () => {
+          events.push('success');
+        },
+      });
+
+      expect(events).toEqual(['before', 'run', 'success']);
+    });
+
+    it('calls onError with the failing seeder and the thrown error', async () => {
       const boom = new Error('boom');
       let receivedCtor: SeederCtor | undefined;
       let receivedError: unknown;
@@ -317,8 +296,8 @@ describe('seeder suites', () => {
       expect(receivedError).toBe(boom);
     });
 
-    it('does not call onAfter when a seeder throws', async () => {
-      const onAfter = vi.fn();
+    it('does not call onSuccess when a seeder throws', async () => {
+      const onSuccess = vi.fn();
 
       @Seeder()
       class ThrowingSeeder {
@@ -327,12 +306,73 @@ describe('seeder suites', () => {
         }
       }
 
-      await expect(runSeeders([ThrowingSeeder], { logging: false, onAfter })).rejects.toThrow();
+      await expect(runSeeders([ThrowingSeeder], { logging: false, onSuccess })).rejects.toThrow();
 
-      expect(onAfter).not.toHaveBeenCalled();
+      expect(onSuccess).not.toHaveBeenCalled();
     });
 
-    it('re-throws the error after onError completes', async () => {
+    it('calls onFinally on success with total duration', async () => {
+      let receivedDuration: number | undefined;
+
+      @Seeder()
+      class FinallySuccessSeeder {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await runSeeders([FinallySuccessSeeder], {
+        logging: false,
+        onFinally: (durationMs) => {
+          receivedDuration = durationMs;
+        },
+      });
+
+      expect(receivedDuration).toBeGreaterThanOrEqual(0);
+    });
+
+    it('calls onFinally on error with total duration', async () => {
+      let receivedDuration: number | undefined;
+
+      @Seeder()
+      class FinallyErrorSeeder {
+        async run(_ctx: SeedContext) {
+          throw new Error('fail');
+        }
+      }
+
+      await expect(
+        runSeeders([FinallyErrorSeeder], {
+          logging: false,
+          onFinally: (durationMs) => {
+            receivedDuration = durationMs;
+          },
+        }),
+      ).rejects.toThrow();
+
+      expect(receivedDuration).toBeGreaterThanOrEqual(0);
+    });
+
+    it('does not call onFinally when onBefore throws', async () => {
+      const onFinally = vi.fn();
+
+      @Seeder()
+      class AnySeeder {
+        async run(_ctx: SeedContext) {}
+      }
+
+      await expect(
+        runSeeders([AnySeeder], {
+          logging: false,
+          onBefore: () => {
+            throw new Error('before failed');
+          },
+          onFinally,
+        }),
+      ).rejects.toThrow('before failed');
+
+      expect(onFinally).not.toHaveBeenCalled();
+    });
+
+    it('re-throws the error after onError and onFinally complete', async () => {
       const boom = new Error('original');
 
       @Seeder()
@@ -346,8 +386,142 @@ describe('seeder suites', () => {
         runSeeders([RethrowSeeder], {
           logging: false,
           onError: () => {},
+          onFinally: () => {},
         }),
       ).rejects.toBe(boom);
+    });
+
+    describe('class-level hooks', () => {
+      it('calls instance onBefore before run()', async () => {
+        const events: string[] = [];
+
+        @Seeder()
+        class ClassHookBeforeSeeder {
+          onBefore() {
+            events.push('onBefore');
+          }
+
+          async run(_ctx: SeedContext) {
+            events.push('run');
+          }
+        }
+
+        await runSeeders([ClassHookBeforeSeeder], { logging: false });
+
+        expect(events).toEqual(['onBefore', 'run']);
+      });
+
+      it('calls instance onSuccess with duration after run() succeeds', async () => {
+        let receivedDuration: number | undefined;
+
+        @Seeder()
+        class ClassHookSuccessSeeder {
+          onSuccess(durationMs: number) {
+            receivedDuration = durationMs;
+          }
+
+          async run(_ctx: SeedContext) {}
+        }
+
+        await runSeeders([ClassHookSuccessSeeder], { logging: false });
+
+        expect(receivedDuration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('calls instance onError with the thrown error', async () => {
+        const boom = new Error('boom');
+        let receivedError: unknown;
+
+        @Seeder()
+        class ClassHookErrorSeeder {
+          onError(error: unknown) {
+            receivedError = error;
+          }
+
+          async run(_ctx: SeedContext) {
+            throw boom;
+          }
+        }
+
+        await expect(runSeeders([ClassHookErrorSeeder], { logging: false })).rejects.toThrow(
+          'boom',
+        );
+
+        expect(receivedError).toBe(boom);
+      });
+
+      it('calls instance onFinally on success and on error', async () => {
+        let successCalled = false;
+        let errorCalled = false;
+
+        @Seeder()
+        class ClassFinallySuccessSeeder {
+          onFinally() {
+            successCalled = true;
+          }
+
+          async run(_ctx: SeedContext) {}
+        }
+
+        @Seeder()
+        class ClassFinallyErrorSeeder {
+          onFinally() {
+            errorCalled = true;
+          }
+
+          async run(_ctx: SeedContext) {
+            throw new Error('fail');
+          }
+        }
+
+        await runSeeders([ClassFinallySuccessSeeder], { logging: false });
+        await expect(runSeeders([ClassFinallyErrorSeeder], { logging: false })).rejects.toThrow();
+
+        expect(successCalled).toBe(true);
+        expect(errorCalled).toBe(true);
+      });
+
+      it('fires class-level hooks before runSeeders-level hooks', async () => {
+        const events: string[] = [];
+
+        @Seeder()
+        class HookOrderSeeder {
+          onBefore() {
+            events.push('class:onBefore');
+          }
+
+          async run(_ctx: SeedContext) {
+            events.push('run');
+          }
+
+          onSuccess() {
+            events.push('class:onSuccess');
+          }
+
+          onFinally() {
+            events.push('class:onFinally');
+          }
+        }
+
+        await runSeeders([HookOrderSeeder], {
+          logging: false,
+          onSuccess: () => {
+            events.push('runner:onSuccess');
+          },
+          onFinally: () => {
+            events.push('runner:onFinally');
+          },
+        });
+
+        expect(events).toEqual([
+          'class:onBefore',
+          'run',
+          'class:onSuccess',
+          'class:onFinally',
+          'runner:onSuccess',
+          'runner:onFinally',
+        ]);
+      });
     });
   });
 

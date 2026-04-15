@@ -17,7 +17,7 @@ export type RunCallback = (ctx: { dataSource: DataSource }) => void | Promise<vo
 
 interface SeederModuleBaseOptions extends Pick<
   RunSeedersOptions,
-  'onBefore' | 'onAfter' | 'onError'
+  'onBefore' | 'onSuccess' | 'onError' | 'onFinally'
 > {
   /**
    * Explicit DataSource. When omitted, the module resolves the DataSource

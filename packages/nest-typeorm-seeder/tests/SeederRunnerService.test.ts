@@ -107,7 +107,7 @@ describe('SeederRunnerService', () => {
   // rejecting the init() promise — making it impossible to suppress in a test without fighting the
   // framework. onError is covered thoroughly in @joakimbugge/typeorm-seeder's own test suite.
   describe('hooks', () => {
-    it('calls onBefore before each seeder', async () => {
+    it('calls onBefore once before any seeder runs', async () => {
       const dataSource = await createDataSource().initialize();
       const onBefore = vi.fn();
 
@@ -117,23 +117,24 @@ describe('SeederRunnerService', () => {
 
       await moduleRef.init();
 
-      expect(onBefore).toHaveBeenCalledWith(UserSeeder);
+      expect(onBefore).toHaveBeenCalledTimes(1);
+      expect(onBefore).toHaveBeenCalledWith();
 
       await moduleRef.close();
       await dataSource.destroy();
     });
 
-    it('calls onAfter after each seeder', async () => {
+    it('calls onSuccess with the ran seeders and total duration after all complete', async () => {
       const dataSource = await createDataSource().initialize();
-      const onAfter = vi.fn();
+      const onSuccess = vi.fn();
 
       const moduleRef = await compileModule({
-        imports: [SeederModule.forRoot({ seeders: [UserSeeder], dataSource, onAfter })],
+        imports: [SeederModule.forRoot({ seeders: [UserSeeder], dataSource, onSuccess })],
       });
 
       await moduleRef.init();
 
-      expect(onAfter).toHaveBeenCalledWith(UserSeeder, expect.any(Number));
+      expect(onSuccess).toHaveBeenCalledWith([UserSeeder], expect.any(Number));
 
       await moduleRef.close();
       await dataSource.destroy();

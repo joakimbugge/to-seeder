@@ -126,9 +126,11 @@ email!: string
 
 When called from `create` or `save` (single entity), the index is always `0`.
 
-## Circular relations
+## Circular and bidirectional relations
 
-When seeding an entity with relations, those related entities are seeded too. If a related entity has a back-reference to the parent, you have a cycle:
+When seeding an entity with relations, those related entities are seeded too. `@Seed()` on a relation property **always creates a new entity instance** — it does not select an existing one from the database. If you need to link to a specific existing entity, use the [`values` option](/mikroorm/seeding-entities#overriding-seeded-values).
+
+If a related entity has a back-reference to the parent (a bidirectional relation), you have a cycle:
 
 ```ts
 @Entity()

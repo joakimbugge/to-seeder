@@ -7,6 +7,7 @@ import type { SeedContext } from '../seed/registry.js';
 import type { SeederRunContext } from './context.js';
 
 /** Constructor type for a class decorated with `@Seeder`. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type SeederCtor<TResult = unknown> = new () => SeederInterface<any, TResult>;
 
 /**
@@ -41,12 +42,17 @@ export type RunSeedersOptions<TContext extends SeedContext = SeedContext> = TCon
    * Defaults to {@link ConsoleLogger} when omitted.
    */
   logger?: SeederLogger;
-  /** Called before each seeder runs, in execution order. */
-  onBefore?: (seeder: SeederCtor) => void | Promise<void>;
-  /** Called after each seeder completes successfully, with the time it took in milliseconds. */
-  onAfter?: (seeder: SeederCtor, durationMs: number) => void | Promise<void>;
-  /** Called when a seeder throws. The error is re-thrown after this callback returns. */
+  /** Called once before any seeder runs. */
+  onBefore?: () => void | Promise<void>;
+  /**
+   * Called once after all seeders complete successfully.
+   * Receives the list of seeders that ran (excluding skipped ones) and the total duration.
+   */
+  onSuccess?: (seeders: SeederCtor[], durationMs: number) => void | Promise<void>;
+  /** Called when a seeder throws, with the failing seeder and the error. The error is re-thrown after this returns. */
   onError?: (seeder: SeederCtor, error: unknown) => void | Promise<void>;
+  /** Always called once after all seeders finish — whether all succeeded or one threw. */
+  onFinally?: (durationMs: number) => void | Promise<void>;
   /** Called for each seeder before it runs. Return `true` to skip it entirely. */
   skip?: (seeder: SeederCtor) => boolean | Promise<boolean>;
 };
@@ -132,9 +138,15 @@ function resolveLog(logging: false | true, logger: SeederLogger | undefined) {
 /**
  * Runs the given seeders (and all their transitive dependencies) in dependency order.
  *
- * Each seeder is instantiated, its `run` method is called with the context derived
- * from `options`, and lifecycle hooks (`onBefore`, `onAfter`, `onError`) are called
- * around it. Errors are re-thrown after `onError` returns.
+ * Each seeder is instantiated and its `run` method is called with the context derived
+ * from `options`. Lifecycle hooks fire at two levels:
+ *
+ * - **Class-level** (`onBefore`, `onSuccess`, `onError`, `onFinally` methods on the seeder
+ *   instance) — per-seeder logic defined directly inside the class.
+ * - **`runSeeders`-level** (`onBefore`, `onSuccess`, `onError`, `onFinally` in options) —
+ *   global hooks that fire once for the entire run.
+ *
+ * Class-level hooks fire first. Errors are re-thrown after `onError` and `onFinally` return.
  *
  * @example
  * await runSeeders([PostSeeder], { dataSource })
@@ -147,7 +159,16 @@ function resolveLog(logging: false | true, logger: SeederLogger | undefined) {
  * })
  */
 export async function runSeeders(seeders: SeederCtor[], options: RunSeedersOptions = {}) {
-  const { logging = false, logger, onBefore, onAfter, onError, skip, ...context } = options;
+  const {
+    logging = false,
+    logger,
+    onBefore,
+    onSuccess,
+    onError,
+    onFinally,
+    skip,
+    ...context
+  } = options;
   const results = new Map<SeederCtor, unknown>();
   const log = resolveLog(logging, logger);
 
@@ -156,35 +177,54 @@ export async function runSeeders(seeders: SeederCtor[], options: RunSeedersOptio
   // into createMany/saveMany options) can read previously completed seeders' results.
   const ctx: SeederRunContext = { ...context, results };
 
-  for (const level of buildLevels(seeders)) {
-    await Promise.all(
-      level.map(async (SeederClass) => {
-        if (await skip?.(SeederClass)) {
-          return;
-        }
+  await onBefore?.();
 
-        log?.progress(`[${SeederClass.name}] Starting...`);
-        await onBefore?.(SeederClass);
+  const start = Date.now();
+  let failingSeeder: SeederCtor | undefined;
 
-        const start = Date.now();
+  try {
+    for (const level of buildLevels(seeders)) {
+      await Promise.all(
+        level.map(async (SeederClass) => {
+          if (await skip?.(SeederClass)) {
+            return;
+          }
 
-        try {
-          results.set(SeederClass, await new SeederClass().run(ctx));
-        } catch (err) {
-          const durationMs = Date.now() - start;
+          const instance = new SeederClass();
 
-          log?.failure(`[${SeederClass.name}] Failed after ${durationMs}ms`);
-          await onError?.(SeederClass, err);
-          throw err;
-        }
+          log?.progress(`[${SeederClass.name}] Starting...`);
+          await instance.onBefore?.();
 
-        const durationMs = Date.now() - start;
+          const seederStart = Date.now();
 
-        log?.progress(`[${SeederClass.name}] Done in ${durationMs}ms`);
-        await onAfter?.(SeederClass, durationMs);
-      }),
-    );
+          try {
+            results.set(SeederClass, await instance.run(ctx));
+          } catch (err) {
+            failingSeeder = SeederClass;
+            const seederDuration = Date.now() - seederStart;
+            log?.failure(`[${SeederClass.name}] Failed after ${seederDuration}ms`);
+            await instance.onError?.(err);
+            await instance.onFinally?.(seederDuration);
+            throw err;
+          }
+
+          const seederDuration = Date.now() - seederStart;
+          log?.progress(`[${SeederClass.name}] Done in ${seederDuration}ms`);
+          await instance.onSuccess?.(seederDuration);
+          await instance.onFinally?.(seederDuration);
+        }),
+      );
+    }
+  } catch (err) {
+    const totalDuration = Date.now() - start;
+    await onError?.(failingSeeder!, err);
+    await onFinally?.(totalDuration);
+    throw err;
   }
+
+  const totalDuration = Date.now() - start;
+  await onSuccess?.([...results.keys()], totalDuration);
+  await onFinally?.(totalDuration);
 
   return results as SeederResultMap;
 }

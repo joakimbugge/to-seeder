@@ -115,7 +115,7 @@ describe('SeederRunnerService', () => {
   // rejecting the init() promise — making it impossible to suppress in a test without fighting the
   // framework. onError is covered thoroughly in @joakimbugge/mikroorm-seeder's own test suite.
   describe('hooks', () => {
-    it('calls onBefore before each seeder', async () => {
+    it('calls onBefore once before any seeder runs', async () => {
       const orm = await createOrm();
       const onBefore = vi.fn();
 
@@ -125,23 +125,24 @@ describe('SeederRunnerService', () => {
 
       await moduleRef.init();
 
-      expect(onBefore).toHaveBeenCalledWith(UserSeeder);
+      expect(onBefore).toHaveBeenCalledTimes(1);
+      expect(onBefore).toHaveBeenCalledWith();
 
       await moduleRef.close();
       await orm.close();
     });
 
-    it('calls onAfter after each seeder', async () => {
+    it('calls onSuccess with the ran seeders and total duration after all complete', async () => {
       const orm = await createOrm();
-      const onAfter = vi.fn();
+      const onSuccess = vi.fn();
 
       const moduleRef = await compileModule({
-        imports: [SeederModule.forRoot({ seeders: [UserSeeder], em: orm.em.fork(), onAfter })],
+        imports: [SeederModule.forRoot({ seeders: [UserSeeder], em: orm.em.fork(), onSuccess })],
       });
 
       await moduleRef.init();
 
-      expect(onAfter).toHaveBeenCalledWith(UserSeeder, expect.any(Number));
+      expect(onSuccess).toHaveBeenCalledWith([UserSeeder], expect.any(Number));
 
       await moduleRef.close();
       await orm.close();

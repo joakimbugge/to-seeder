@@ -52,7 +52,14 @@ export class SeederRunnerService implements OnApplicationBootstrap {
 
       const logging = this.options.logging !== false;
 
-      await runSeeders(seeders, {
+      // Map original ctors by name so global onSuccess/onError callbacks receive originals,
+      // not the wrapped classes used internally for per-seeder logging and runOnce tracking.
+      const originalByName = new Map(seeders.map((s) => [s.name, s]));
+      const wrappedSeeders = seeders.map((SeederClass) =>
+        this.wrapSeeder(SeederClass, dataSource, tableName, runOnce, logging),
+      );
+
+      await runSeeders(wrappedSeeders, {
         dataSource,
         relations: this.options.relations,
         logging: false,
@@ -65,40 +72,62 @@ export class SeederRunnerService implements OnApplicationBootstrap {
 
           return shouldSkip;
         },
-        onBefore: async (seeder) => {
-          if (logging) {
-            this.logger.log(`[${seeder.name}] Starting...`);
-          }
-
-          await this.options.onBefore?.(seeder);
-        },
-        onAfter: async (seeder, durationMs) => {
-          if (runOnce) {
-            await this.recordRun(dataSource, tableName, seeder.name);
-          }
-
-          if (logging) {
-            this.logger.log(`[${seeder.name}] Done in ${durationMs}ms`);
-          }
-
-          await this.options.onAfter?.(seeder, durationMs);
-        },
-        onError: async (seeder, error) => {
-          if (logging) {
-            this.logger.error(
-              `[${seeder.name}] Failed`,
-              error instanceof Error ? error.stack : String(error),
-            );
-          }
-
-          await this.options.onError?.(seeder, error);
-        },
+        onBefore: () => this.options.onBefore?.(),
+        onSuccess: (ranSeeders, durationMs) =>
+          this.options.onSuccess?.(
+            ranSeeders.map((s) => originalByName.get(s.name) ?? s),
+            durationMs,
+          ),
+        onError: (seeder, error) =>
+          this.options.onError?.(originalByName.get(seeder.name) ?? seeder, error),
+        onFinally: (durationMs) => this.options.onFinally?.(durationMs),
       });
     }
 
     if (this.options.run) {
       await this.options.run({ dataSource });
     }
+  }
+
+  /**
+   * Wraps a seeder class to inject per-seeder NestJS logging and runOnce tracking
+   * via class-level lifecycle hooks, without modifying the original class.
+   */
+  private wrapSeeder(
+    SeederClass: new () => any,
+    dataSource: DataSource,
+    tableName: string,
+    runOnce: boolean,
+    logging: boolean,
+  ): new () => any {
+    const logger = this.logger;
+    const service = this;
+
+    const Wrapped = class extends SeederClass {
+      async onBefore(): Promise<void> {
+        await super.onBefore?.();
+        if (logging) {logger.log(`[${SeederClass.name}] Starting...`);}
+      }
+
+      async onSuccess(durationMs: number): Promise<void> {
+        await super.onSuccess?.(durationMs);
+        if (runOnce) {await service.recordRun(dataSource, tableName, SeederClass.name);}
+        if (logging) {logger.log(`[${SeederClass.name}] Done in ${durationMs}ms`);}
+      }
+
+      async onError(error: unknown): Promise<void> {
+        await super.onError?.(error);
+        if (logging) {
+          logger.error(
+            `[${SeederClass.name}] Failed`,
+            error instanceof Error ? error.stack : String(error),
+          );
+        }
+      }
+    };
+
+    Object.defineProperty(Wrapped, 'name', { value: SeederClass.name });
+    return Wrapped;
   }
 
   /**
