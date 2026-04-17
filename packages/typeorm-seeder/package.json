@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "reflect-metadata": "^0.2.2",
-    "typeorm": "1.0.0-nightly.20260405"
+    "typeorm": "1.0.0-nightly.20260417"
   },
   "dependencies": {
     "@joakimbugge/seeder": "workspace:^",
