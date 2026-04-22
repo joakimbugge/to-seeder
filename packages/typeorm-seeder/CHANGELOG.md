@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.1](https://github.com/joakimbugge/seeders/compare/typeorm-seeder-v0.12.0...typeorm-seeder-v0.12.1) (2026-04-22)
+
+
+### Bug Fixes
+
+* add seeder suite return type generic to prevent casting ([dedad13](https://github.com/joakimbugge/seeders/commit/dedad135f4a655e02f6412ed7196205590965615))
+* prevent types naming conflicts between seeder and orm package ([4b8dd8b](https://github.com/joakimbugge/seeders/commit/4b8dd8b58c39c281ba9cb3d52144fe1d91d68e37))
+
 ## [0.12.0](https://github.com/joakimbugge/seeders/compare/typeorm-seeder-v0.11.0...typeorm-seeder-v0.12.0) (2026-04-13)
 
 
