@@ -1,5 +1,12 @@
 # @joakimbugge/nest-mikroorm-seeder
 
+## [0.3.2](https://github.com/joakimbugge/seeders/compare/nest-mikroorm-seeder-v0.3.1...nest-mikroorm-seeder-v0.3.2) (2026-04-22)
+
+
+### Features
+
+* new lifecycle hooks (onBefore, onSuccess, onError, onFinally) ([4b32a9d](https://github.com/joakimbugge/seeders/commit/4b32a9d6253c4ae9bc7b77ae64a70cc3a17f206b))
+
 ## [0.3.1](https://github.com/joakimbugge/seeders/compare/nest-mikroorm-seeder-v0.3.0...nest-mikroorm-seeder-v0.3.1) (2026-04-13)
 
 

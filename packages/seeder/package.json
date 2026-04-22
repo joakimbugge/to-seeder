@@ -1,6 +1,6 @@
 {
   "name": "@joakimbugge/seeder",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "ORM-agnostic decorator-based entity seeding",
   "repository": {
     "type": "git",
