@@ -76,8 +76,8 @@ importers:
         specifier: ^7.0.9
         version: 7.0.9(dataloader@2.2.3)
       '@mikro-orm/decorators':
-        specifier: ^7.0.0
-        version: 7.0.6(@mikro-orm/core@7.0.9(dataloader@2.2.3))(reflect-metadata@0.2.2)
+        specifier: ^7.0.12
+        version: 7.0.12(@mikro-orm/core@7.0.9(dataloader@2.2.3))(reflect-metadata@0.2.2)
       '@mikro-orm/reflection':
         specifier: ^7.0.11
         version: 7.0.11(@mikro-orm/core@7.0.9(dataloader@2.2.3))
@@ -100,8 +100,8 @@ importers:
         specifier: ^7.0.9
         version: 7.0.9(dataloader@2.2.3)
       '@mikro-orm/decorators':
-        specifier: ^7.0.0
-        version: 7.0.6(@mikro-orm/core@7.0.9(dataloader@2.2.3))(reflect-metadata@0.2.2)
+        specifier: ^7.0.12
+        version: 7.0.12(@mikro-orm/core@7.0.9(dataloader@2.2.3))(reflect-metadata@0.2.2)
       '@mikro-orm/nestjs':
         specifier: ^7.0.0
         version: 7.0.1(@mikro-orm/core@7.0.9(dataloader@2.2.3))(@nestjs/common@11.1.18(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.18(@nestjs/common@11.1.18(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)
@@ -678,11 +678,11 @@ packages:
       dataloader:
         optional: true
 
-  '@mikro-orm/decorators@7.0.6':
-    resolution: {integrity: sha512-1yGoiBQ6Okhufpw5WGITsmktuNS0deU3QA3KLJos99HeNp9nRqSiMkXuOP9zja87zNwAXgx0+zeioE9sCXDebQ==}
+  '@mikro-orm/decorators@7.0.12':
+    resolution: {integrity: sha512-CNK8kzXMxFYAibJpPULxfRF7fHhkZ4i8DqHbvd1cjaQD47WVgCL0g4A+2Tw88RfRu7vgYtY6ms7+vnnEo+lsIQ==}
     engines: {node: '>= 22.17.0'}
     peerDependencies:
-      '@mikro-orm/core': 7.0.6
+      '@mikro-orm/core': 7.0.12
       reflect-metadata: ^0.1.0 || ^0.2.0
     peerDependenciesMeta:
       reflect-metadata:
@@ -3336,7 +3336,7 @@ snapshots:
     optionalDependencies:
       dataloader: 2.2.3
 
-  '@mikro-orm/decorators@7.0.6(@mikro-orm/core@7.0.9(dataloader@2.2.3))(reflect-metadata@0.2.2)':
+  '@mikro-orm/decorators@7.0.12(@mikro-orm/core@7.0.9(dataloader@2.2.3))(reflect-metadata@0.2.2)':
     dependencies:
       '@mikro-orm/core': 7.0.9(dataloader@2.2.3)
     optionalDependencies:
