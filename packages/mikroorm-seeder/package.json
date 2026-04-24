@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@mikro-orm/core": "^7.0.9",
-    "@mikro-orm/decorators": "^7.0.0",
+    "@mikro-orm/decorators": "^7.0.12",
     "@mikro-orm/reflection": "^7.0.11",
     "@mikro-orm/sqlite": "^7.0.8",
     "reflect-metadata": "^0.2.2"

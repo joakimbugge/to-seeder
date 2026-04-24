@@ -67,7 +67,7 @@
     "@joakimbugge/seeder": "workspace:^",
     "@joakimbugge/mikroorm-seeder": "workspace:^",
     "@mikro-orm/core": "^7.0.9",
-    "@mikro-orm/decorators": "^7.0.0",
+    "@mikro-orm/decorators": "^7.0.12",
     "@mikro-orm/nestjs": "^7.0.0",
     "@mikro-orm/sqlite": "^7.0.8",
     "@nestjs/common": "^11.1.18",
