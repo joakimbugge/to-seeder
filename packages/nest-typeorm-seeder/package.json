@@ -69,6 +69,6 @@
     "@nestjs/core": "^11.1.29",
     "@nestjs/testing": "^11.1.29",
     "reflect-metadata": "^0.2.2",
-    "typeorm": "1.1.0"
+    "typeorm": "1.1.1"
   }
 }
