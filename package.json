@@ -44,6 +44,6 @@
     "typescript": "^6.0.3",
     "unplugin-swc": "^1.5.11",
     "vitepress": "^2.0.0-alpha.19",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   }
 }
